@@ -2,6 +2,7 @@
 
 pub(crate) mod performances;
 pub(crate) mod songs;
+pub(crate) mod tags;
 
 use axum::{
     Router,
@@ -26,6 +27,7 @@ pub fn build_router(state: AppState) -> Router {
     Router::new()
         .nest("/api/songs", songs::router())
         .nest("/api/performances", performances::router())
+        .nest("/api/tags", tags::router())
         .nest("/auth", auth::router())
         .merge(docs::router())
         .layer(TraceLayer::new_for_http())

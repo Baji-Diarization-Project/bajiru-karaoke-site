@@ -1,6 +1,7 @@
 //! Query functions for the `images` table.
 
 use sqlx::{Executor, MySql, MySqlConnection};
+use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::image::{Image, NewImage, UpdateImage};
@@ -10,7 +11,7 @@ type Result<T> = std::result::Result<T, DbError>;
 /// Fetches an image by ID.
 pub async fn get_by_id(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
 ) -> Result<Option<Image>> {
     sqlx::query_as::<_, Image>(
         "SELECT id, public_url, internal_path, credits FROM images WHERE id = ?",
@@ -38,7 +39,7 @@ pub async fn create(conn: &mut MySqlConnection, new: &NewImage) -> Result<Image>
 /// Updates an image record's mutable fields. Returns `None` if the ID does not exist.
 pub async fn update(
     conn: &mut MySqlConnection,
-    id: u32,
+    id: Uuid,
     upd: &UpdateImage,
 ) -> Result<Option<Image>> {
     sqlx::query_as::<_, Image>(
@@ -55,7 +56,7 @@ pub async fn update(
 }
 
 /// Deletes an image record by ID. Returns `true` if a row was deleted.
-pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> Result<bool> {
+pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> Result<bool> {
     sqlx::query("DELETE FROM images WHERE id = ?")
         .bind(id)
         .execute(executor)

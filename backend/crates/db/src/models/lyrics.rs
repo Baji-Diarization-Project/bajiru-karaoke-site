@@ -4,11 +4,12 @@
 //! and performances. See `queries::lyrics::reference_count` for safe deletion.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A lyrics row fetched from the database.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Lyrics {
-    pub id: u32,
+    pub id: Uuid,
     pub content: String,
 }
 

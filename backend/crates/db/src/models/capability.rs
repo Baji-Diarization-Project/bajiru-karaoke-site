@@ -1,6 +1,7 @@
 //! Capability model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A named permission label that can be granted to users.
 ///
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// checked by route handlers to gate privileged operations.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Capability {
-    pub id: u32,
+    pub id: Uuid,
     pub title: String,
 }
 

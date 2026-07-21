@@ -1,11 +1,12 @@
 //! Image model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// An image asset stored on disk and linked to songs.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Image {
-    pub id: u32,
+    pub id: Uuid,
     /// Publicly served URL for clients.
     pub public_url: String,
     /// Absolute filesystem path used for actual file.

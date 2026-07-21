@@ -7,16 +7,25 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::common::{ArtistInfo, ImageInfo, TagInfo};
+use crate::tags::SongTagKind;
+
+/// A tag paired with its kind for application to a song.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SongTagAssignment {
+    pub tag_id: Uuid,
+    pub kind: SongTagKind,
+}
 
 /// Request body for `POST /api/songs`.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CreateSongRequest {
     pub title: String,
-    pub artist_ids: Vec<u32>,
-    pub tag_ids: Vec<u32>,
-    pub image_ids: Vec<u32>,
+    pub artist_ids: Vec<Uuid>,
+    pub tags: Vec<SongTagAssignment>,
+    pub image_ids: Vec<Uuid>,
     /// Optional inline lyrics content. Creates a lyrics row in a single round trip.
     pub lyrics: Option<String>,
 }
@@ -27,9 +36,9 @@ pub struct CreateSongRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdateSongRequest {
     pub title: String,
-    pub artist_ids: Vec<u32>,
-    pub tag_ids: Vec<u32>,
-    pub image_ids: Vec<u32>,
+    pub artist_ids: Vec<Uuid>,
+    pub tags: Vec<SongTagAssignment>,
+    pub image_ids: Vec<Uuid>,
 }
 
 /// Lean song representation returned by list endpoints.
@@ -37,7 +46,7 @@ pub struct UpdateSongRequest {
 /// Contains enough to render a song card without a follow up request.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SongSummary {
-    pub id: u32,
+    pub id: Uuid,
     pub title: String,
     pub date_added: DateTime<Utc>,
     pub artists: Vec<ArtistInfo>,
@@ -48,7 +57,7 @@ pub struct SongSummary {
 /// Excludes lyrics; fetch those via `GET /api/songs/{id}/lyrics` on demand.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SongResponse {
-    pub id: u32,
+    pub id: Uuid,
     pub title: String,
     pub date_added: DateTime<Utc>,
     pub artists: Vec<ArtistInfo>,

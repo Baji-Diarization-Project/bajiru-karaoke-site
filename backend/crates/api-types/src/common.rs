@@ -2,11 +2,12 @@
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 /// A minimal artist record embedded in song and performance responses.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ArtistInfo {
-    pub id: u32,
+    pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
 }
@@ -14,7 +15,7 @@ pub struct ArtistInfo {
 /// A tag embedded in song responses.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TagInfo {
-    pub id: u32,
+    pub id: Uuid,
     pub name: String,
     /// Freeform category string (e.g. `"genre"`, `"mood"`).
     pub kind: String,
@@ -23,7 +24,7 @@ pub struct TagInfo {
 /// An image record embedded in song responses.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ImageInfo {
-    pub id: u32,
+    pub id: Uuid,
     pub public_url: String,
     pub credits: Option<String>,
 }
@@ -31,7 +32,7 @@ pub struct ImageInfo {
 /// A media file (audio or video) embedded in performance responses.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct MediaInfo {
-    pub id: u32,
+    pub id: Uuid,
     pub public_url: String,
 }
 

@@ -1,11 +1,12 @@
 //! Artist model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// An artist record fetched from the database.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Artist {
-    pub id: u32,
+    pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
 }

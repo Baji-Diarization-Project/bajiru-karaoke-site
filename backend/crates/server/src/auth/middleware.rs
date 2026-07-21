@@ -3,6 +3,7 @@
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum_extra::extract::CookieJar;
+use uuid::Uuid;
 
 use db::queries;
 
@@ -18,7 +19,7 @@ use super::session;
 ///
 /// Capabilities are looked up fresh on every request.
 pub struct AuthUser {
-    pub user_id: u32,
+    pub user_id: Uuid,
     pub capabilities: Vec<String>,
 }
 

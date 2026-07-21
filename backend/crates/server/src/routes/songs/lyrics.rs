@@ -11,6 +11,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use uuid::Uuid;
 
 use api_types::{
     common::ErrorResponse,
@@ -23,7 +24,7 @@ use crate::{error::ApiError, state::AppState};
 #[utoipa::path(
     get,
     path = "/api/songs/{id}/lyrics",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     responses(
         (status = 200, description = "Song lyrics", body = LyricsResponse),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -32,7 +33,7 @@ use crate::{error::ApiError, state::AppState};
 )]
 pub(crate) async fn get_lyrics(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<LyricsResponse>, ApiError> {
     let song = queries::songs::get_by_id(&state.pool, id)
         .await?
@@ -51,7 +52,7 @@ pub(crate) async fn get_lyrics(
 #[utoipa::path(
     put,
     path = "/api/songs/{id}/lyrics",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     request_body = UpdateLyricsRequest,
     responses(
         (status = 204, description = "Lyrics saved"),
@@ -61,7 +62,7 @@ pub(crate) async fn get_lyrics(
 )]
 pub(crate) async fn put_lyrics(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
     Json(req): Json<UpdateLyricsRequest>,
 ) -> Result<StatusCode, ApiError> {
     let song = queries::songs::get_by_id(&state.pool, id)
@@ -92,7 +93,7 @@ pub(crate) async fn put_lyrics(
 #[utoipa::path(
     delete,
     path = "/api/songs/{id}/lyrics",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     responses(
         (status = 204, description = "Lyrics removed"),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -101,7 +102,7 @@ pub(crate) async fn put_lyrics(
 )]
 pub(crate) async fn delete_lyrics(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     let song = queries::songs::get_by_id(&state.pool, id)
         .await?

@@ -9,3 +9,4 @@ license = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
 utoipa = { workspace = true }
+uuid = { workspace = true }

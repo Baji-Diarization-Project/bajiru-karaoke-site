@@ -7,6 +7,7 @@ use chrono::{Duration, Utc};
 use cookie::{Cookie, SameSite};
 use rand_core::{OsRng, RngCore};
 use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 use db::{MySqlPool, error::DbError, queries};
 
@@ -14,7 +15,7 @@ const SESSION_DAYS: i64 = 30;
 const TOKEN_BYTES: usize = 32;
 
 /// Creates a new session for `user_id` and returns the raw token to store in the cookie.
-pub async fn issue(pool: &MySqlPool, user_id: u32) -> Result<String, DbError> {
+pub async fn issue(pool: &MySqlPool, user_id: Uuid) -> Result<String, DbError> {
     let mut bytes = [0u8; TOKEN_BYTES];
     OsRng.fill_bytes(&mut bytes);
     let token = hex::encode(bytes);
@@ -24,7 +25,7 @@ pub async fn issue(pool: &MySqlPool, user_id: u32) -> Result<String, DbError> {
 }
 
 /// Looks up the session for `token`, returning its user ID if present and unexpired.
-pub async fn verify(pool: &MySqlPool, token: &str) -> Result<Option<u32>, DbError> {
+pub async fn verify(pool: &MySqlPool, token: &str) -> Result<Option<Uuid>, DbError> {
     Ok(queries::sessions::get_valid(pool, &hash(token))
         .await?
         .map(|s| s.user_id))

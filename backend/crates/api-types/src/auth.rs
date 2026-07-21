@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 /// Request body for `POST /auth/register`.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -22,7 +23,7 @@ pub struct LoginRequest {
 /// Response body for `GET /auth/me`.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct MeResponse {
-    pub id: u32,
+    pub id: Uuid,
     pub username: String,
     /// Capability titles embedded in the session JWT.
     pub capabilities: Vec<String>,

@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Utc};
 use sqlx::{Executor, MySql};
+use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::session::Session;
@@ -12,7 +13,7 @@ type Result<T> = std::result::Result<T, DbError>;
 pub async fn create(
     executor: impl Executor<'_, Database = MySql>,
     id: &str,
-    user_id: u32,
+    user_id: Uuid,
     expires_at: DateTime<Utc>,
 ) -> Result<()> {
     sqlx::query("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")

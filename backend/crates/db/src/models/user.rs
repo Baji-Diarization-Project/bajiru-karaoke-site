@@ -1,6 +1,7 @@
 //! User model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A user record fetched from the database.
 ///
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// A `None` provider ID means the user has not linked that provider.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct User {
-    pub id: u32,
+    pub id: Uuid,
     pub username: String,
     pub twitch_id: Option<u64>,
     pub discord_id: Option<u64>,

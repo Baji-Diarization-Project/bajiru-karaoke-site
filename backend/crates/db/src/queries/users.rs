@@ -1,6 +1,7 @@
 //! Query functions for the `users` table.
 
 use sqlx::{Executor, MySql, MySqlConnection};
+use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::user::{NewUser, UpdateUser, User};
@@ -10,7 +11,7 @@ type Result<T> = std::result::Result<T, DbError>;
 /// Fetches a user by primary key.
 pub async fn get_by_id(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
 ) -> Result<Option<User>> {
     sqlx::query_as::<_, User>("SELECT id, username, twitch_id, discord_id FROM users WHERE id = ?")
         .bind(id)
@@ -133,7 +134,11 @@ pub async fn upsert_by_discord(conn: &mut MySqlConnection, new: &NewUser) -> Res
 }
 
 /// Replaces all mutable fields on a user. Returns `None` if the ID does not exist.
-pub async fn update(conn: &mut MySqlConnection, id: u32, upd: &UpdateUser) -> Result<Option<User>> {
+pub async fn update(
+    conn: &mut MySqlConnection,
+    id: Uuid,
+    upd: &UpdateUser,
+) -> Result<Option<User>> {
     sqlx::query_as::<_, User>(
         "UPDATE users SET username = ?, twitch_id = ?, discord_id = ? WHERE id = ? \
          RETURNING id, username, twitch_id, discord_id",
@@ -148,7 +153,7 @@ pub async fn update(conn: &mut MySqlConnection, id: u32, upd: &UpdateUser) -> Re
 }
 
 /// Deletes a user by ID. Returns `true` if a row was deleted.
-pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> Result<bool> {
+pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> Result<bool> {
     sqlx::query("DELETE FROM users WHERE id = ?")
         .bind(id)
         .execute(executor)
@@ -160,35 +165,38 @@ pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> R
 /// Returns the IDs of all songs the user has favorited.
 pub async fn get_favorite_song_ids(
     executor: impl Executor<'_, Database = MySql>,
-    user_id: u32,
-) -> Result<Vec<u32>> {
-    sqlx::query_scalar::<_, u32>("SELECT song_id FROM user_favorite_songs WHERE user_id = ?")
+    user_id: Uuid,
+) -> Result<Vec<Uuid>> {
+    sqlx::query_scalar::<_, Uuid>("SELECT song_id FROM user_favorite_songs WHERE user_id = ?")
         .bind(user_id)
         .fetch_all(executor)
         .await
         .map_err(DbError::from)
 }
 
-/// Adds a song to the user's favorites. Silently ignores duplicates.
+/// Adds a song to the user's favorites. No ops if already favorited.
 pub async fn add_favorite_song(
     executor: impl Executor<'_, Database = MySql>,
-    user_id: u32,
-    song_id: u32,
+    user_id: Uuid,
+    song_id: Uuid,
 ) -> Result<()> {
-    sqlx::query("INSERT IGNORE INTO user_favorite_songs (user_id, song_id) VALUES (?, ?)")
-        .bind(user_id)
-        .bind(song_id)
-        .execute(executor)
-        .await
-        .map(|_| ())
-        .map_err(DbError::from)
+    sqlx::query(
+        "INSERT INTO user_favorite_songs (user_id, song_id) VALUES (?, ?) \
+         ON DUPLICATE KEY UPDATE user_id = user_id",
+    )
+    .bind(user_id)
+    .bind(song_id)
+    .execute(executor)
+    .await
+    .map(|_| ())
+    .map_err(DbError::from)
 }
 
 /// Removes a song from the user's favorites.
 pub async fn remove_favorite_song(
     executor: impl Executor<'_, Database = MySql>,
-    user_id: u32,
-    song_id: u32,
+    user_id: Uuid,
+    song_id: Uuid,
 ) -> Result<()> {
     sqlx::query("DELETE FROM user_favorite_songs WHERE user_id = ? AND song_id = ?")
         .bind(user_id)

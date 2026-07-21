@@ -1,6 +1,7 @@
 //! Password credential model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// An argon2 password hash stored for a user.
 ///
@@ -8,6 +9,6 @@ use serde::{Deserialize, Serialize};
 /// The hash is a PHC string with the salt embedded.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct UserCredential {
-    pub user_id: u32,
+    pub user_id: Uuid,
     pub password_hash: String,
 }

@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A song record fetched from the database.
 ///
@@ -9,11 +10,11 @@ use serde::{Deserialize, Serialize};
 /// corresponding query helpers to load those via JOIN.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Song {
-    pub id: u32,
+    pub id: Uuid,
     pub title: String,
     /// User who created this song record. `None` if created by system.
-    pub created_by: Option<u32>,
-    pub lyrics_id: Option<u32>,
+    pub created_by: Option<Uuid>,
+    pub lyrics_id: Option<Uuid>,
     pub date_added: DateTime<Utc>,
 }
 
@@ -21,8 +22,8 @@ pub struct Song {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewSong {
     pub title: String,
-    pub created_by: Option<u32>,
-    pub lyrics_id: Option<u32>,
+    pub created_by: Option<Uuid>,
+    pub lyrics_id: Option<Uuid>,
 }
 
 /// Input for replacing a song's mutable scalar fields.

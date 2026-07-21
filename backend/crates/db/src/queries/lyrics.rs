@@ -4,6 +4,7 @@
 //! `lyrics_id`.
 
 use sqlx::{Executor, MySql, MySqlConnection};
+use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::lyrics::{Lyrics, NewLyrics};
@@ -13,7 +14,7 @@ type Result<T> = std::result::Result<T, DbError>;
 /// Fetches a lyrics row by ID.
 pub async fn get_by_id(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
 ) -> Result<Option<Lyrics>> {
     sqlx::query_as::<_, Lyrics>("SELECT id, content FROM lyrics WHERE id = ?")
         .bind(id)
@@ -37,7 +38,7 @@ pub async fn create(conn: &mut MySqlConnection, new: &NewLyrics) -> Result<Lyric
 /// performance that references this ID.
 pub async fn update(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
     content: &str,
 ) -> Result<()> {
     sqlx::query("UPDATE lyrics SET content = ? WHERE id = ?")
@@ -50,7 +51,7 @@ pub async fn update(
 }
 
 /// Deletes a lyrics row by ID. Returns `true` if a row was deleted.
-pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> Result<bool> {
+pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> Result<bool> {
     sqlx::query("DELETE FROM lyrics WHERE id = ?")
         .bind(id)
         .execute(executor)
@@ -64,7 +65,7 @@ pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> R
 /// Check this before deleting: only delete the row when the count reaches zero.
 pub async fn reference_count(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
 ) -> Result<u64> {
     let count: i64 = sqlx::query_scalar(
         "SELECT \

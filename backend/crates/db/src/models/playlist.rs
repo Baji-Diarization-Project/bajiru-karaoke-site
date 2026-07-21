@@ -1,17 +1,18 @@
 //! Playlist model.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A playlist of performances.
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Playlist {
-    pub id: u32,
+    pub id: Uuid,
     pub title: String,
     pub description: Option<String>,
     /// Freeform category string (e.g. `"setlist"`, `"favorites"`).
     pub kind: String,
     /// User who created this playlist. `None` for system generated playlists.
-    pub created_by: Option<u32>,
+    pub created_by: Option<Uuid>,
 }
 
 /// Input for creating a new playlist.
@@ -20,7 +21,7 @@ pub struct NewPlaylist {
     pub title: String,
     pub description: Option<String>,
     pub kind: String,
-    pub created_by: Option<u32>,
+    pub created_by: Option<Uuid>,
 }
 
 /// Input for replacing a playlist's mutable fields.

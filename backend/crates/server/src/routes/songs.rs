@@ -4,15 +4,18 @@ pub(crate) mod lyrics;
 
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     routing::get,
 };
+use uuid::Uuid;
 
 use api_types::{
     common::{ArtistInfo, ErrorResponse, ImageInfo, TagInfo},
     lyrics::{LyricsResponse, UpdateLyricsRequest},
-    songs::{CreateSongRequest, SongResponse, SongSummary, UpdateSongRequest},
+    pagination::{PagedResponse, PaginationParams},
+    songs::{CreateSongRequest, SongResponse, SongSummary, SongTagAssignment, UpdateSongRequest},
+    tags::SongTagKind,
 };
 
 #[derive(utoipa::OpenApi)]
@@ -32,12 +35,15 @@ use api_types::{
         SongResponse,
         CreateSongRequest,
         UpdateSongRequest,
+        SongTagAssignment,
+        SongTagKind,
         LyricsResponse,
         UpdateLyricsRequest,
         ArtistInfo,
         TagInfo,
         ImageInfo,
         ErrorResponse,
+        PagedResponse<SongSummary>,
     ))
 )]
 pub(crate) struct SongsApi;
@@ -48,7 +54,7 @@ use db::{
     queries,
 };
 
-use crate::{error::ApiError, state::AppState};
+use crate::{error::ApiError, pagination, state::AppState};
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -86,7 +92,7 @@ async fn hydrate(pool: &MySqlPool, song: db::models::Song) -> Result<SongRespons
             name: t.name,
             kind: t.kind,
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     let images = images
         .into_iter()
@@ -110,20 +116,28 @@ async fn hydrate(pool: &MySqlPool, song: db::models::Song) -> Result<SongRespons
 #[utoipa::path(
     get,
     path = "/api/songs",
+    params(PaginationParams),
     responses(
-        (status = 200, description = "List of songs (summarized)", body = Vec<SongSummary>),
+        (status = 200, description = "Paged list of songs", body = PagedResponse<SongSummary>),
     ),
     tag = "songs"
 )]
 pub(crate) async fn list_songs(
     State(state): State<AppState>,
-) -> Result<Json<Vec<SongSummary>>, ApiError> {
-    let songs = queries::songs::list(&state.pool).await?;
-    let song_ids: Vec<u32> = songs.iter().map(|s| s.id).collect();
+    Query(params): Query<PaginationParams>,
+) -> Result<Json<PagedResponse<SongSummary>>, ApiError> {
+    let (limit, offset) = pagination::limit_offset(&params);
+
+    let (total, songs) = tokio::try_join!(
+        queries::songs::count(&state.pool),
+        queries::songs::list(&state.pool, limit, offset),
+    )?;
+
+    let song_ids: Vec<Uuid> = songs.iter().map(|s| s.id).collect();
     let mut artists_by_song =
         queries::songs::get_original_artists_batch(&state.pool, &song_ids).await?;
 
-    let summaries = songs
+    let items = songs
         .into_iter()
         .map(|s| {
             let artists = artists_by_song
@@ -144,13 +158,19 @@ pub(crate) async fn list_songs(
             }
         })
         .collect();
-    Ok(Json(summaries))
+
+    Ok(Json(PagedResponse {
+        items,
+        total,
+        page: params.page,
+        per_page: limit,
+    }))
 }
 
 #[utoipa::path(
     get,
     path = "/api/songs/{id}",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     responses(
         (status = 200, description = "Song detail", body = SongResponse),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -159,7 +179,7 @@ pub(crate) async fn list_songs(
 )]
 pub(crate) async fn get_song(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<SongResponse>, ApiError> {
     let song = queries::songs::get_by_id(&state.pool, id)
         .await?
@@ -200,8 +220,9 @@ pub(crate) async fn create_song(
     )
     .await?;
 
+    let tag_pairs = tag_pairs(&req.tags);
     queries::songs::set_original_artists(&mut tx, song.id, &req.artist_ids).await?;
-    queries::songs::set_tags(&mut tx, song.id, &req.tag_ids).await?;
+    queries::songs::set_tags(&mut tx, song.id, &tag_pairs).await?;
     queries::songs::set_images(&mut tx, song.id, &req.image_ids).await?;
 
     tx.commit().await.map_err(DbError::Sqlx)?;
@@ -212,7 +233,7 @@ pub(crate) async fn create_song(
 #[utoipa::path(
     put,
     path = "/api/songs/{id}",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     request_body = UpdateSongRequest,
     responses(
         (status = 200, description = "Updated song", body = SongResponse),
@@ -222,7 +243,7 @@ pub(crate) async fn create_song(
 )]
 pub(crate) async fn update_song(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
     Json(req): Json<UpdateSongRequest>,
 ) -> Result<Json<SongResponse>, ApiError> {
     let mut tx = state.pool.begin().await.map_err(DbError::Sqlx)?;
@@ -231,8 +252,9 @@ pub(crate) async fn update_song(
         .await?
         .ok_or(ApiError::NotFound)?;
 
+    let tag_pairs = tag_pairs(&req.tags);
     queries::songs::set_original_artists(&mut tx, id, &req.artist_ids).await?;
-    queries::songs::set_tags(&mut tx, id, &req.tag_ids).await?;
+    queries::songs::set_tags(&mut tx, id, &tag_pairs).await?;
     queries::songs::set_images(&mut tx, id, &req.image_ids).await?;
 
     tx.commit().await.map_err(DbError::Sqlx)?;
@@ -240,10 +262,17 @@ pub(crate) async fn update_song(
     Ok(Json(hydrate(&state.pool, song).await?))
 }
 
+fn tag_pairs(assignments: &[SongTagAssignment]) -> Vec<(Uuid, &str)> {
+    assignments
+        .iter()
+        .map(|a| (a.tag_id, a.kind.as_str()))
+        .collect()
+}
+
 #[utoipa::path(
     delete,
     path = "/api/songs/{id}",
-    params(("id" = u32, Path, description = "Song ID")),
+    params(("id" = Uuid, Path, description = "Song ID")),
     responses(
         (status = 204, description = "Deleted"),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -252,7 +281,7 @@ pub(crate) async fn update_song(
 )]
 pub(crate) async fn delete_song(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     let found = queries::songs::delete(&state.pool, id).await?;
     if found {

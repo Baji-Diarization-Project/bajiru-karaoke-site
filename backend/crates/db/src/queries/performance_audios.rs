@@ -1,6 +1,7 @@
 //! Query functions for the `performance_audios` table.
 
 use sqlx::{Executor, MySql, MySqlConnection};
+use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::performance_audio::{NewPerformanceAudio, PerformanceAudio};
@@ -10,7 +11,7 @@ type Result<T> = std::result::Result<T, DbError>;
 /// Fetches a performance audio record by ID.
 pub async fn get_by_id(
     executor: impl Executor<'_, Database = MySql>,
-    id: u32,
+    id: Uuid,
 ) -> Result<Option<PerformanceAudio>> {
     sqlx::query_as::<_, PerformanceAudio>(
         "SELECT id, performance_id, public_url, internal_path \
@@ -25,7 +26,7 @@ pub async fn get_by_id(
 /// Returns all audio records for a given performance.
 pub async fn list_for_performance(
     executor: impl Executor<'_, Database = MySql>,
-    performance_id: u32,
+    performance_id: Uuid,
 ) -> Result<Vec<PerformanceAudio>> {
     sqlx::query_as::<_, PerformanceAudio>(
         "SELECT id, performance_id, public_url, internal_path \
@@ -56,7 +57,7 @@ pub async fn create(
 }
 
 /// Deletes a performance audio record by ID. Returns `true` if a row was deleted.
-pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: u32) -> Result<bool> {
+pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> Result<bool> {
     sqlx::query("DELETE FROM performance_audios WHERE id = ?")
         .bind(id)
         .execute(executor)

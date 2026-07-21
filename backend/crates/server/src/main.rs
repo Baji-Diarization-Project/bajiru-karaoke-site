@@ -3,6 +3,7 @@ mod config;
 mod docs;
 mod error;
 mod media;
+mod pagination;
 mod routes;
 mod state;
 mod storage;

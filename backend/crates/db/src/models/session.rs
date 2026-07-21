@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// A server side session row, keyed by the SHA256 hash of the session token.
 ///
@@ -10,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Session {
     pub id: String,
-    pub user_id: u32,
+    pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
 }

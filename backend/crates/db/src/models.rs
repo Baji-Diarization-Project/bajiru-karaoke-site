@@ -24,6 +24,6 @@ pub use performance_video::{NewPerformanceVideo, PerformanceVideo};
 pub use playlist::{NewPlaylist, Playlist, UpdatePlaylist};
 pub use session::Session;
 pub use song::{NewSong, Song, UpdateSong};
-pub use tag::{NewTag, Tag};
+pub use tag::{NewTag, Tag, TagWithKind};
 pub use user::{NewUser, UpdateUser, User};
 pub use user_credential::UserCredential;

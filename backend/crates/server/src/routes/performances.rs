@@ -4,19 +4,23 @@ pub(crate) mod lyrics;
 
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, Path, State},
+    extract::{DefaultBodyLimit, Multipart, Path, Query, State},
     http::StatusCode,
     routing::{delete, get, post},
 };
 use tracing::error;
+use uuid::Uuid;
 
 use api_types::{
-    common::{ArtistInfo, ErrorResponse, MediaInfo},
+    common::{ArtistInfo, ErrorResponse, MediaInfo, TagInfo},
     lyrics::{LyricsResponse, UpdateLyricsRequest},
+    pagination::{PagedResponse, PaginationParams},
     performances::{
-        CreatePerformanceRequest, PerformanceResponse, PerformanceSummary, UpdatePerformanceRequest,
+        CreatePerformanceRequest, PerformanceResponse, PerformanceSummary,
+        PerformanceTagAssignment, UpdatePerformanceRequest,
     },
     songs::SongSummary,
+    tags::PerformanceTagKind,
 };
 
 #[derive(utoipa::OpenApi)]
@@ -40,13 +44,17 @@ use api_types::{
         PerformanceResponse,
         CreatePerformanceRequest,
         UpdatePerformanceRequest,
+        PerformanceTagAssignment,
+        PerformanceTagKind,
         SongSummary,
         ArtistInfo,
+        TagInfo,
         MediaInfo,
         FileUpload,
         LyricsResponse,
         UpdateLyricsRequest,
         ErrorResponse,
+        PagedResponse<PerformanceSummary>,
     ))
 )]
 pub(crate) struct PerformancesApi;
@@ -59,7 +67,7 @@ use db::{
     queries,
 };
 
-use crate::{error::ApiError, media, state::AppState};
+use crate::{error::ApiError, media, pagination, state::AppState};
 
 /// Placeholder schema for multipart file upload bodies.
 #[derive(utoipa::ToSchema)]
@@ -101,9 +109,10 @@ async fn hydrate(
     pool: &MySqlPool,
     perf: db::models::Performance,
 ) -> Result<PerformanceResponse, ApiError> {
-    let (songs, singers, audio, video) = tokio::try_join!(
+    let (songs, singers, tags, audio, video) = tokio::try_join!(
         queries::performances::get_songs(pool, perf.id),
         queries::performances::get_singers(pool, perf.id),
+        queries::performances::get_tags(pool, perf.id),
         queries::performance_audios::list_for_performance(pool, perf.id),
         queries::performance_videos::list_for_performance(pool, perf.id),
     )?;
@@ -124,6 +133,15 @@ async fn hydrate(
             id: a.id,
             name: a.name,
             description: a.description,
+        })
+        .collect();
+
+    let tags = tags
+        .into_iter()
+        .map(|t| TagInfo {
+            id: t.id,
+            name: t.name,
+            kind: t.kind,
         })
         .collect();
 
@@ -151,6 +169,7 @@ async fn hydrate(
         performance_date: perf.performance_date,
         songs,
         singers,
+        tags,
         audio,
         video,
     })
@@ -159,20 +178,28 @@ async fn hydrate(
 #[utoipa::path(
     get,
     path = "/api/performances",
+    params(PaginationParams),
     responses(
-        (status = 200, description = "List of performances (summarized)", body = Vec<PerformanceSummary>),
+        (status = 200, description = "Paged list of performances", body = PagedResponse<PerformanceSummary>),
     ),
     tag = "performances"
 )]
 pub(crate) async fn list_performances(
     State(state): State<AppState>,
-) -> Result<Json<Vec<PerformanceSummary>>, ApiError> {
-    let perfs = queries::performances::list(&state.pool).await?;
-    let perf_ids: Vec<u32> = perfs.iter().map(|p| p.id).collect();
+    Query(params): Query<PaginationParams>,
+) -> Result<Json<PagedResponse<PerformanceSummary>>, ApiError> {
+    let (limit, offset) = pagination::limit_offset(&params);
+
+    let (total, perfs) = tokio::try_join!(
+        queries::performances::count(&state.pool),
+        queries::performances::list(&state.pool, limit, offset),
+    )?;
+
+    let perf_ids: Vec<Uuid> = perfs.iter().map(|p| p.id).collect();
     let mut singers_by_perf =
         queries::performances::get_singers_batch(&state.pool, &perf_ids).await?;
 
-    let summaries = perfs
+    let items = perfs
         .into_iter()
         .map(|p| {
             let singers = singers_by_perf
@@ -195,13 +222,19 @@ pub(crate) async fn list_performances(
             }
         })
         .collect();
-    Ok(Json(summaries))
+
+    Ok(Json(PagedResponse {
+        items,
+        total,
+        page: params.page,
+        per_page: limit,
+    }))
 }
 
 #[utoipa::path(
     get,
     path = "/api/performances/{id}",
-    params(("id" = u32, Path, description = "Performance ID")),
+    params(("id" = Uuid, Path, description = "Performance ID")),
     responses(
         (status = 200, description = "Performance detail", body = PerformanceResponse),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -210,7 +243,7 @@ pub(crate) async fn list_performances(
 )]
 pub(crate) async fn get_performance(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<PerformanceResponse>, ApiError> {
     let perf = queries::performances::get_by_id(&state.pool, id)
         .await?
@@ -253,8 +286,10 @@ pub(crate) async fn create_performance(
     )
     .await?;
 
+    let tag_pairs = tag_pairs(&req.tags);
     queries::performances::set_songs(&mut tx, perf.id, &req.song_ids).await?;
     queries::performances::set_singers(&mut tx, perf.id, &req.singer_ids).await?;
+    queries::performances::set_tags(&mut tx, perf.id, &tag_pairs).await?;
 
     tx.commit().await.map_err(DbError::Sqlx)?;
 
@@ -264,7 +299,7 @@ pub(crate) async fn create_performance(
 #[utoipa::path(
     put,
     path = "/api/performances/{id}",
-    params(("id" = u32, Path, description = "Performance ID")),
+    params(("id" = Uuid, Path, description = "Performance ID")),
     request_body = UpdatePerformanceRequest,
     responses(
         (status = 200, description = "Updated performance", body = PerformanceResponse),
@@ -274,7 +309,7 @@ pub(crate) async fn create_performance(
 )]
 pub(crate) async fn update_performance(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
     Json(req): Json<UpdatePerformanceRequest>,
 ) -> Result<Json<PerformanceResponse>, ApiError> {
     let mut tx = state.pool.begin().await.map_err(DbError::Sqlx)?;
@@ -291,8 +326,10 @@ pub(crate) async fn update_performance(
     .await?
     .ok_or(ApiError::NotFound)?;
 
+    let tag_pairs = tag_pairs(&req.tags);
     queries::performances::set_songs(&mut tx, id, &req.song_ids).await?;
     queries::performances::set_singers(&mut tx, id, &req.singer_ids).await?;
+    queries::performances::set_tags(&mut tx, id, &tag_pairs).await?;
 
     tx.commit().await.map_err(DbError::Sqlx)?;
 
@@ -302,7 +339,7 @@ pub(crate) async fn update_performance(
 #[utoipa::path(
     delete,
     path = "/api/performances/{id}",
-    params(("id" = u32, Path, description = "Performance ID")),
+    params(("id" = Uuid, Path, description = "Performance ID")),
     responses(
         (status = 204, description = "Deleted"),
         (status = 404, description = "Not found", body = ErrorResponse),
@@ -311,7 +348,7 @@ pub(crate) async fn update_performance(
 )]
 pub(crate) async fn delete_performance(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     let found = queries::performances::delete(&state.pool, id).await?;
     if found {
@@ -319,6 +356,13 @@ pub(crate) async fn delete_performance(
     } else {
         Err(ApiError::NotFound)
     }
+}
+
+fn tag_pairs(assignments: &[PerformanceTagAssignment]) -> Vec<(Uuid, &str)> {
+    assignments
+        .iter()
+        .map(|a| (a.tag_id, a.kind.as_str()))
+        .collect()
 }
 
 /// Reads the `file` field from a multipart body and returns its bytes, content type, and filename.
@@ -352,7 +396,7 @@ async fn read_file_field(
 #[utoipa::path(
     post,
     path = "/api/performances/{id}/audio",
-    params(("id" = u32, Path, description = "Performance ID")),
+    params(("id" = Uuid, Path, description = "Performance ID")),
     request_body(content = FileUpload, content_type = "multipart/form-data"),
     responses(
         (status = 201, description = "Audio uploaded", body = MediaInfo),
@@ -363,7 +407,7 @@ async fn read_file_field(
 )]
 pub(crate) async fn upload_audio(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
     mut multipart: Multipart,
 ) -> Result<(StatusCode, Json<MediaInfo>), ApiError> {
     queries::performances::get_by_id(&state.pool, id)
@@ -398,8 +442,8 @@ pub(crate) async fn upload_audio(
     delete,
     path = "/api/performances/{id}/audio/{audio_id}",
     params(
-        ("id" = u32, Path, description = "Performance ID"),
-        ("audio_id" = u32, Path, description = "Audio record ID"),
+        ("id" = Uuid, Path, description = "Performance ID"),
+        ("audio_id" = Uuid, Path, description = "Audio record ID"),
     ),
     responses(
         (status = 204, description = "Deleted"),
@@ -409,7 +453,7 @@ pub(crate) async fn upload_audio(
 )]
 pub(crate) async fn delete_audio(
     State(state): State<AppState>,
-    Path((id, audio_id)): Path<(u32, u32)>,
+    Path((id, audio_id)): Path<(Uuid, Uuid)>,
 ) -> Result<StatusCode, ApiError> {
     let audio = queries::performance_audios::get_by_id(&state.pool, audio_id)
         .await?
@@ -429,7 +473,7 @@ pub(crate) async fn delete_audio(
 #[utoipa::path(
     post,
     path = "/api/performances/{id}/video",
-    params(("id" = u32, Path, description = "Performance ID")),
+    params(("id" = Uuid, Path, description = "Performance ID")),
     request_body(content = FileUpload, content_type = "multipart/form-data"),
     responses(
         (status = 201, description = "Video uploaded", body = MediaInfo),
@@ -440,7 +484,7 @@ pub(crate) async fn delete_audio(
 )]
 pub(crate) async fn upload_video(
     State(state): State<AppState>,
-    Path(id): Path<u32>,
+    Path(id): Path<Uuid>,
     mut multipart: Multipart,
 ) -> Result<(StatusCode, Json<MediaInfo>), ApiError> {
     queries::performances::get_by_id(&state.pool, id)
@@ -475,8 +519,8 @@ pub(crate) async fn upload_video(
     delete,
     path = "/api/performances/{id}/video/{video_id}",
     params(
-        ("id" = u32, Path, description = "Performance ID"),
-        ("video_id" = u32, Path, description = "Video record ID"),
+        ("id" = Uuid, Path, description = "Performance ID"),
+        ("video_id" = Uuid, Path, description = "Video record ID"),
     ),
     responses(
         (status = 204, description = "Deleted"),
@@ -486,7 +530,7 @@ pub(crate) async fn upload_video(
 )]
 pub(crate) async fn delete_video(
     State(state): State<AppState>,
-    Path((id, video_id)): Path<(u32, u32)>,
+    Path((id, video_id)): Path<(Uuid, Uuid)>,
 ) -> Result<StatusCode, ApiError> {
     let video = queries::performance_videos::get_by_id(&state.pool, video_id)
         .await?
