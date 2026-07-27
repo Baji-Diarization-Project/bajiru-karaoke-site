@@ -1,5 +1,6 @@
-<script setup lang="ts">
+<script setup>
 import NavItem from './sidebar/NavItem.vue'
+import Separator from './sidebar/Separator.vue'
 </script>
 
 <template>
@@ -13,18 +14,15 @@ import NavItem from './sidebar/NavItem.vue'
     <ul class="flex flex-col gap-2 text-[#DCDDDF] list-none p-0">
       <NavItem to="/" label="Home" iconClass="i-solar:box-minimalistic-outline" />
       <NavItem to="/songs" label="Search" />
-      <NavItem to="/..." label="Random Song" />
-      <NavItem to="/..." label="Explore" />
-      <NavItem to="/..." label="Artists" />
-      <NavItem to="/..." label="Karaoke Setlist" />
-      <NavItem to="/..." label="About" />
-      <NavItem to="/..." label="Dashboard" />
-      <div class="separator flex flex-col gap-1 py-1 text-[#818181]">
-        <span class="w-full h-[1px] bg-[#818181]"></span>
-        <p class="uppercase">Your Library</p>
-      </div>
-      <NavItem to="/..." label="Your Favorites" />
-      <NavItem to="/..." label="Your Playlists" />
+      <NavItem to="/todo" label="Random Song" />
+      <NavItem to="/todo" label="Explore" />
+      <NavItem to="/todo" label="Artists" />
+      <NavItem to="/todo" label="Karaoke Setlist" />
+      <NavItem to="/todo" label="About" />
+      <NavItem to="/todo" label="Dashboard" />
+      <Separator label="Your Library" />
+      <NavItem to="/todo" label="Your Favorites" />
+      <NavItem to="/todo" label="Your Playlists" />
     </ul>
   </aside>
 </template>
