@@ -1,1 +1,19 @@
 * @Askadar
+
+# CI/CD
+/.github/ @Askadar @InfornoFire @sulyana-nova
+
+# Backend
+/backend/ @Askadar @InfornoFire @sulyana-nova
+
+# Frontend
+/frontend/ @Askadar
+
+# Nginx
+/nginx/ @Askadar @InfornoFire @sulyana-nova
+
+# Root Files
+/* @Askadar @InfornoFire @sulyana-nova
+
+# CODEOWNERS
+/.github/CODEOWNERS @Askadar
