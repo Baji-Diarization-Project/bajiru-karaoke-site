@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS capabilities (
 
 -- User <-> Capability (M2M)
 CREATE TABLE IF NOT EXISTS user_capabilities (
-    user_id BINARY(16) NOT NULL REFERENCES users (id),
-    capability_id BINARY(16) NOT NULL REFERENCES capabilities (id),
+    user_id BINARY(16) NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    capability_id BINARY(16) NOT NULL REFERENCES capabilities (id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, capability_id)
 ) ENGINE = InnoDB;
 
@@ -89,11 +89,13 @@ CREATE TABLE IF NOT EXISTS playlists (
     title VARCHAR(256) NOT NULL,
     description TEXT NULL,
     kind VARCHAR(64) NOT NULL,
-    created_by BINARY(16) NULL REFERENCES users (id),
+    is_public BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by BINARY(16) NULL REFERENCES users (id) ON DELETE CASCADE,
     PRIMARY KEY (id),
     INDEX (title),
     INDEX (kind),
-    CONSTRAINT proper_playlist_kind CHECK (kind REGEXP '(user)|(official)')
+    INDEX (is_public),
+    INDEX (created_by, kind)
 ) ENGINE = InnoDB;
 
 -- Songs
@@ -101,8 +103,8 @@ CREATE TABLE IF NOT EXISTS playlists (
 CREATE TABLE IF NOT EXISTS songs (
     id BINARY(16) NOT NULL DEFAULT (UNHEX(REPLACE(UUID_V7(), '-', ''))),
     title VARCHAR(256) NOT NULL,
-    created_by BINARY(16) NULL REFERENCES users (id),
-    lyrics_id BINARY(16) NULL REFERENCES lyrics (id),
+    created_by BINARY(16) NULL REFERENCES users (id) ON DELETE SET NULL,
+    lyrics_id BINARY(16) NULL REFERENCES lyrics (id) ON DELETE SET NULL,
     date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     INDEX (title),
@@ -111,33 +113,26 @@ CREATE TABLE IF NOT EXISTS songs (
 
 -- Song <-> Image (M2M)
 CREATE TABLE IF NOT EXISTS song_images (
-    song_id BINARY(16) NOT NULL REFERENCES songs (id),
-    image_id BINARY(16) NOT NULL REFERENCES images (id),
+    song_id BINARY(16) NOT NULL REFERENCES songs (id) ON DELETE CASCADE,
+    image_id BINARY(16) NOT NULL REFERENCES images (id) ON DELETE CASCADE,
     PRIMARY KEY (song_id, image_id)
 ) ENGINE = InnoDB;
 
 -- Song <-> Original Artist (M2M)
 CREATE TABLE IF NOT EXISTS song_original_artists (
-    song_id BINARY(16) NOT NULL REFERENCES songs (id),
-    artist_id BINARY(16) NOT NULL REFERENCES artists (id),
+    song_id BINARY(16) NOT NULL REFERENCES songs (id) ON DELETE CASCADE,
+    artist_id BINARY(16) NOT NULL REFERENCES artists (id) ON DELETE CASCADE,
     PRIMARY KEY (song_id, artist_id),
     INDEX (artist_id)
 ) ENGINE = InnoDB;
 
 -- Song <-> Tag (M2M)
 CREATE TABLE IF NOT EXISTS song_tags (
-    song_id BINARY(16) NOT NULL REFERENCES songs (id),
-    tag_id BINARY(16) NOT NULL REFERENCES tags (id),
+    song_id BINARY(16) NOT NULL REFERENCES songs (id) ON DELETE CASCADE,
+    tag_id BINARY(16) NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
     kind VARCHAR(32) NOT NULL,
     PRIMARY KEY (song_id, tag_id),
     INDEX (tag_id)
-) ENGINE = InnoDB;
-
--- User <-> Favorite Song (M2M)
-CREATE TABLE IF NOT EXISTS user_favorite_songs (
-    user_id BINARY(16) NOT NULL REFERENCES users (id),
-    song_id BINARY(16) NOT NULL REFERENCES songs (id),
-    PRIMARY KEY (user_id, song_id)
 ) ENGINE = InnoDB;
 
 -- Performances
@@ -148,8 +143,8 @@ CREATE TABLE IF NOT EXISTS user_favorite_songs (
 CREATE TABLE IF NOT EXISTS performances (
     id BINARY(16) NOT NULL DEFAULT (UNHEX(REPLACE(UUID_V7(), '-', ''))),
     title VARCHAR(256) NULL,
-    created_by BINARY(16) NULL REFERENCES users (id),
-    lyrics_id BINARY(16) NULL REFERENCES lyrics (id),
+    created_by BINARY(16) NULL REFERENCES users (id) ON DELETE SET NULL,
+    lyrics_id BINARY(16) NULL REFERENCES lyrics (id) ON DELETE SET NULL,
     play_count INT NOT NULL DEFAULT 0,
     duration INT UNSIGNED NULL,
     performance_date DATETIME NOT NULL,
@@ -159,16 +154,16 @@ CREATE TABLE IF NOT EXISTS performances (
 
 -- Performance <-> Song (M2M)
 CREATE TABLE IF NOT EXISTS performance_songs (
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
-    song_id BINARY(16) NOT NULL REFERENCES songs (id),
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
+    song_id BINARY(16) NOT NULL REFERENCES songs (id) ON DELETE CASCADE,
     PRIMARY KEY (performance_id, song_id),
     INDEX (song_id)
 ) ENGINE = InnoDB;
 
 -- Performance <-> Tag (M2M)
 CREATE TABLE IF NOT EXISTS performance_tags (
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
-    tag_id BINARY(16) NOT NULL REFERENCES tags (id),
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
+    tag_id BINARY(16) NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
     kind VARCHAR(32) NOT NULL,
     PRIMARY KEY (performance_id, tag_id),
     INDEX (tag_id)
@@ -176,8 +171,8 @@ CREATE TABLE IF NOT EXISTS performance_tags (
 
 -- Performance <-> Singer (M2M)
 CREATE TABLE IF NOT EXISTS performance_singers (
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
-    artist_id BINARY(16) NOT NULL REFERENCES artists (id),
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
+    artist_id BINARY(16) NOT NULL REFERENCES artists (id) ON DELETE CASCADE,
     PRIMARY KEY (performance_id, artist_id),
     INDEX (artist_id)
 ) ENGINE = InnoDB;
@@ -185,7 +180,7 @@ CREATE TABLE IF NOT EXISTS performance_singers (
 -- Performance audios
 CREATE TABLE IF NOT EXISTS performance_audios (
     id BINARY(16) NOT NULL DEFAULT (UNHEX(REPLACE(UUID_V7(), '-', ''))),
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
     public_url VARCHAR(512) NOT NULL,
     internal_path VARCHAR(512) NULL,
     PRIMARY KEY (id),
@@ -195,7 +190,7 @@ CREATE TABLE IF NOT EXISTS performance_audios (
 -- Performance videos
 CREATE TABLE IF NOT EXISTS performance_videos (
     id BINARY(16) NOT NULL DEFAULT (UNHEX(REPLACE(UUID_V7(), '-', ''))),
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
     public_url VARCHAR(512) NOT NULL,
     internal_path VARCHAR(512) NULL,
     PRIMARY KEY (id),
@@ -204,8 +199,8 @@ CREATE TABLE IF NOT EXISTS performance_videos (
 
 -- Playlist <-> Performance (M2M, ordered)
 CREATE TABLE IF NOT EXISTS playlist_performances (
-    playlist_id BINARY(16) NOT NULL REFERENCES playlists (id),
-    performance_id BINARY(16) NOT NULL REFERENCES performances (id),
+    playlist_id BINARY(16) NOT NULL REFERENCES playlists (id) ON DELETE CASCADE,
+    performance_id BINARY(16) NOT NULL REFERENCES performances (id) ON DELETE CASCADE,
     sort_order INT NOT NULL DEFAULT 0,
     PRIMARY KEY (playlist_id, performance_id),
     INDEX (performance_id)

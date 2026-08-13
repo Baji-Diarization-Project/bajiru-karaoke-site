@@ -20,25 +20,14 @@ use api_types::{
 )]
 pub(crate) struct TagsApi;
 
-use db::{
-    error::DbError,
-    models::{NewTag, Tag},
-    queries,
-};
+use db::{error::DbError, models::NewTag, queries};
 
-use crate::{error::ApiError, state::AppState};
+use crate::{convert, error::ApiError, state::AppState};
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(list_tags).post(create_tag))
         .route("/{id}", get(get_tag).delete(delete_tag))
-}
-
-fn to_response(tag: Tag) -> TagResponse {
-    TagResponse {
-        id: tag.id,
-        name: tag.name,
-    }
 }
 
 #[utoipa::path(
@@ -53,7 +42,7 @@ pub(crate) async fn list_tags(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<TagResponse>>, ApiError> {
     let tags = queries::tags::list(&state.pool).await?;
-    Ok(Json(tags.into_iter().map(to_response).collect()))
+    Ok(Json(tags.into_iter().map(convert::tag_response).collect()))
 }
 
 #[utoipa::path(
@@ -73,7 +62,7 @@ pub(crate) async fn get_tag(
     let tag = queries::tags::get_by_id(&state.pool, id)
         .await?
         .ok_or(ApiError::NotFound)?;
-    Ok(Json(to_response(tag)))
+    Ok(Json(convert::tag_response(tag)))
 }
 
 #[utoipa::path(
@@ -91,7 +80,7 @@ pub(crate) async fn create_tag(
 ) -> Result<Json<TagResponse>, ApiError> {
     let mut conn = state.pool.acquire().await.map_err(DbError::Sqlx)?;
     let tag = queries::tags::get_or_create(&mut conn, &NewTag { name: req.name }).await?;
-    Ok(Json(to_response(tag)))
+    Ok(Json(convert::tag_response(tag)))
 }
 
 #[utoipa::path(

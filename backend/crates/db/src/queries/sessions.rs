@@ -50,3 +50,12 @@ pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: &str) -> 
         .map(|_| ())
         .map_err(DbError::from)
 }
+
+/// Deletes all expired sessions, returning the number of rows removed.
+pub async fn delete_expired(executor: impl Executor<'_, Database = MySql>) -> Result<u64> {
+    sqlx::query("DELETE FROM sessions WHERE expires_at <= UTC_TIMESTAMP()")
+        .execute(executor)
+        .await
+        .map(|r| r.rows_affected())
+        .map_err(DbError::from)
+}

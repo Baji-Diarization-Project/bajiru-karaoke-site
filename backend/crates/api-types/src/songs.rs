@@ -32,7 +32,7 @@ pub struct CreateSongRequest {
 
 /// Request body for `PUT /api/songs/{id}`.
 ///
-/// Lyrics are excluded; use `PUT /api/songs/{id}/lyrics` instead.
+/// Lyrics are excluded, use `PUT /api/songs/{id}/lyrics` instead.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdateSongRequest {
     pub title: String,
@@ -54,7 +54,7 @@ pub struct SongSummary {
 
 /// Full song metadata returned by detail endpoints.
 ///
-/// Excludes lyrics; fetch those via `GET /api/songs/{id}/lyrics` on demand.
+/// Excludes lyrics, fetch those via `GET /api/songs/{id}/lyrics` on demand.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SongResponse {
     pub id: Uuid,

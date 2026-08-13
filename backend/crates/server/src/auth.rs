@@ -76,7 +76,7 @@ pub(crate) async fn me(
     Ok(Json(MeResponse {
         id: user.id,
         username: user.username,
-        capabilities: auth.capabilities,
+        capabilities: auth.capabilities.into_iter().collect(),
     }))
 }
 

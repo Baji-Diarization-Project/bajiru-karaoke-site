@@ -130,9 +130,9 @@ pub(crate) async fn callback(
         .parse()
         .map_err(|_| ApiError::Internal("invalid Twitch user ID".to_string()))?;
 
-    let mut conn = state.pool.acquire().await.map_err(DbError::Sqlx)?;
-    let user = queries::users::upsert_by_twitch(
-        &mut conn,
+    let mut tx = state.pool.begin().await.map_err(DbError::Sqlx)?;
+    let (user, is_new) = queries::users::upsert_by_twitch(
+        &mut tx,
         &NewUser {
             username: twitch_user.login,
             twitch_id: Some(twitch_id),
@@ -140,6 +140,10 @@ pub(crate) async fn callback(
         },
     )
     .await?;
+    if is_new {
+        queries::playlists::create_favorites(&mut tx, user.id).await?;
+    }
+    tx.commit().await.map_err(DbError::Sqlx)?;
 
     let token = super::session::issue(&state.pool, user.id).await?;
 

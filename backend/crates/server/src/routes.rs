@@ -1,8 +1,10 @@
 //! Top level router composition and middleware stack.
 
 pub(crate) mod performances;
+pub(crate) mod playlists;
 pub(crate) mod songs;
 pub(crate) mod tags;
+pub(crate) mod users;
 
 use axum::{
     Router,
@@ -27,6 +29,8 @@ pub fn build_router(state: AppState) -> Router {
     Router::new()
         .nest("/api/songs", songs::router())
         .nest("/api/performances", performances::router())
+        .nest("/api/playlists", playlists::router())
+        .nest("/api/users", users::router())
         .nest("/api/tags", tags::router())
         .nest("/auth", auth::router())
         .merge(docs::router())

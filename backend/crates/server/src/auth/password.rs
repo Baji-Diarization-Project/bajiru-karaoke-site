@@ -50,6 +50,7 @@ pub(crate) async fn register(
     })?;
 
     queries::user_credentials::create(&mut *tx, user.id, &hash).await?;
+    queries::playlists::create_favorites(&mut tx, user.id).await?;
 
     tx.commit().await.map_err(DbError::Sqlx)?;
 

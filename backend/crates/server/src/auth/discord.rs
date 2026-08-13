@@ -119,9 +119,9 @@ pub(crate) async fn callback(
         .parse()
         .map_err(|_| ApiError::Internal("invalid Discord user ID".to_string()))?;
 
-    let mut conn = state.pool.acquire().await.map_err(DbError::Sqlx)?;
-    let user = queries::users::upsert_by_discord(
-        &mut conn,
+    let mut tx = state.pool.begin().await.map_err(DbError::Sqlx)?;
+    let (user, is_new) = queries::users::upsert_by_discord(
+        &mut tx,
         &NewUser {
             username: discord_user.username,
             twitch_id: None,
@@ -129,6 +129,10 @@ pub(crate) async fn callback(
         },
     )
     .await?;
+    if is_new {
+        queries::playlists::create_favorites(&mut tx, user.id).await?;
+    }
+    tx.commit().await.map_err(DbError::Sqlx)?;
 
     let token = super::session::issue(&state.pool, user.id).await?;
 

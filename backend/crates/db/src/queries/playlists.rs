@@ -4,6 +4,7 @@ use sqlx::{Executor, MySql, MySqlConnection};
 use uuid::Uuid;
 
 use crate::error::DbError;
+use crate::models::performance::Performance;
 use crate::models::playlist::{NewPlaylist, Playlist, UpdatePlaylist};
 
 type Result<T> = std::result::Result<T, DbError>;
@@ -14,7 +15,7 @@ pub async fn get_by_id(
     id: Uuid,
 ) -> Result<Option<Playlist>> {
     sqlx::query_as::<_, Playlist>(
-        "SELECT id, title, description, kind, created_by FROM playlists WHERE id = ?",
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists WHERE id = ?",
     )
     .bind(id)
     .fetch_optional(executor)
@@ -22,10 +23,21 @@ pub async fn get_by_id(
     .map_err(DbError::from)
 }
 
-/// Returns all playlists ordered by ID.
-pub async fn list(executor: impl Executor<'_, Database = MySql>) -> Result<Vec<Playlist>> {
+/// Returns all playlists ordered by ID, including private.
+pub async fn list_all(executor: impl Executor<'_, Database = MySql>) -> Result<Vec<Playlist>> {
     sqlx::query_as::<_, Playlist>(
-        "SELECT id, title, description, kind, created_by FROM playlists ORDER BY id",
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists ORDER BY id",
+    )
+    .fetch_all(executor)
+    .await
+    .map_err(DbError::from)
+}
+
+/// Returns only public playlists ordered by ID.
+pub async fn list_public(executor: impl Executor<'_, Database = MySql>) -> Result<Vec<Playlist>> {
+    sqlx::query_as::<_, Playlist>(
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists \
+         WHERE is_public = TRUE ORDER BY id",
     )
     .fetch_all(executor)
     .await
@@ -38,7 +50,7 @@ pub async fn list_by_user(
     user_id: Uuid,
 ) -> Result<Vec<Playlist>> {
     sqlx::query_as::<_, Playlist>(
-        "SELECT id, title, description, kind, created_by FROM playlists \
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists \
          WHERE created_by = ? ORDER BY id",
     )
     .bind(user_id)
@@ -47,15 +59,47 @@ pub async fn list_by_user(
     .map_err(DbError::from)
 }
 
+/// Returns only public playlists created by a specific user.
+pub async fn list_public_by_user(
+    executor: impl Executor<'_, Database = MySql>,
+    user_id: Uuid,
+) -> Result<Vec<Playlist>> {
+    sqlx::query_as::<_, Playlist>(
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists \
+         WHERE created_by = ? AND is_public = TRUE ORDER BY id",
+    )
+    .bind(user_id)
+    .fetch_all(executor)
+    .await
+    .map_err(DbError::from)
+}
+
+/// Fetches the favorites playlist for a user, returning `None` if it does not exist.
+pub async fn get_favorites_by_user(
+    executor: impl Executor<'_, Database = MySql>,
+    user_id: Uuid,
+) -> Result<Option<Playlist>> {
+    sqlx::query_as::<_, Playlist>(
+        "SELECT id, title, description, kind, is_public, created_by FROM playlists \
+         WHERE created_by = ? AND kind = 'favorites'",
+    )
+    .bind(user_id)
+    .fetch_optional(executor)
+    .await
+    .map_err(DbError::from)
+}
+
 /// Inserts a new playlist and returns the created row.
 pub async fn create(conn: &mut MySqlConnection, new: &NewPlaylist) -> Result<Playlist> {
     sqlx::query_as::<_, Playlist>(
-        "INSERT INTO playlists (title, description, kind, created_by) VALUES (?, ?, ?, ?) \
-         RETURNING id, title, description, kind, created_by",
+        "INSERT INTO playlists (title, description, kind, is_public, created_by) \
+         VALUES (?, ?, ?, ?, ?) \
+         RETURNING id, title, description, kind, is_public, created_by",
     )
     .bind(&new.title)
     .bind(&new.description)
     .bind(&new.kind)
+    .bind(new.is_public)
     .bind(new.created_by)
     .fetch_one(conn)
     .await
@@ -69,14 +113,30 @@ pub async fn update(
     upd: &UpdatePlaylist,
 ) -> Result<Option<Playlist>> {
     sqlx::query_as::<_, Playlist>(
-        "UPDATE playlists SET title = ?, description = ?, kind = ? WHERE id = ? \
-         RETURNING id, title, description, kind, created_by",
+        "UPDATE playlists SET title = ?, description = ?, kind = ?, is_public = ? WHERE id = ? \
+         RETURNING id, title, description, kind, is_public, created_by",
     )
     .bind(&upd.title)
     .bind(&upd.description)
     .bind(&upd.kind)
+    .bind(upd.is_public)
     .bind(id)
     .fetch_optional(conn)
+    .await
+    .map_err(DbError::from)
+}
+
+/// Inserts favorites playlist for a new user.
+///
+/// Favorites playlists are private by default.
+pub async fn create_favorites(conn: &mut MySqlConnection, user_id: Uuid) -> Result<Playlist> {
+    sqlx::query_as::<_, Playlist>(
+        "INSERT INTO playlists (title, kind, is_public, created_by) \
+         VALUES ('Favorites', 'favorites', FALSE, ?) \
+         RETURNING id, title, description, kind, is_public, created_by",
+    )
+    .bind(user_id)
+    .fetch_one(conn)
     .await
     .map_err(DbError::from)
 }
@@ -91,14 +151,18 @@ pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> 
         .map_err(DbError::from)
 }
 
-/// Returns the performance IDs in a playlist, ordered by `sort_order`.
-pub async fn get_performance_ids(
+/// Returns performances in a playlist, ordered by `sort_order`.
+pub async fn get_performances_in_playlist(
     executor: impl Executor<'_, Database = MySql>,
     playlist_id: Uuid,
-) -> Result<Vec<Uuid>> {
-    sqlx::query_scalar::<_, Uuid>(
-        "SELECT performance_id FROM playlist_performances \
-         WHERE playlist_id = ? ORDER BY sort_order",
+) -> Result<Vec<Performance>> {
+    sqlx::query_as::<_, Performance>(
+        "SELECT p.id, p.created_by, p.title, p.lyrics_id, p.play_count, p.duration, \
+         p.performance_date \
+         FROM performances p \
+         JOIN playlist_performances pp ON pp.performance_id = p.id \
+         WHERE pp.playlist_id = ? \
+         ORDER BY pp.sort_order",
     )
     .bind(playlist_id)
     .fetch_all(executor)
@@ -135,39 +199,64 @@ pub async fn set_performances(
     Ok(())
 }
 
-/// Appends a performance to the end of a playlist. No ops if already present.
+/// Appends multiple performances to the end of a playlist, skipping any already present.
 ///
-/// The `sort_order` is set to `MAX(sort_order) + 1`, defaulting to `0` for an
-/// empty playlist.
-pub async fn add_performance(
-    executor: impl Executor<'_, Database = MySql>,
+/// `sort_order` increments from the current maximum.
+pub async fn add_performances(
+    conn: &mut MySqlConnection,
     playlist_id: Uuid,
-    performance_id: Uuid,
+    performance_ids: &[Uuid],
 ) -> Result<()> {
-    sqlx::query(
-        "INSERT INTO playlist_performances (playlist_id, performance_id, sort_order) \
-         VALUES (?, ?, COALESCE(\
-             (SELECT MAX(sort_order) + 1 FROM playlist_performances WHERE playlist_id = ?), 0)) \
-         ON DUPLICATE KEY UPDATE playlist_id = playlist_id",
+    if performance_ids.is_empty() {
+        return Ok(());
+    }
+    let base: i32 = sqlx::query_scalar(
+        "SELECT COALESCE(MAX(sort_order) + 1, 0) \
+         FROM playlist_performances WHERE playlist_id = ?",
     )
     .bind(playlist_id)
-    .bind(performance_id)
-    .bind(playlist_id)
-    .execute(executor)
+    .fetch_one(&mut *conn)
     .await
-    .map(|_| ())
-    .map_err(DbError::from)
-}
-
-/// Removes a single performance from a playlist.
-pub async fn remove_performance(
-    executor: impl Executor<'_, Database = MySql>,
-    playlist_id: Uuid,
-    performance_id: Uuid,
-) -> Result<()> {
-    sqlx::query("DELETE FROM playlist_performances WHERE playlist_id = ? AND performance_id = ?")
+    .map_err(DbError::from)?;
+    for (pos, &performance_id) in performance_ids.iter().enumerate() {
+        sqlx::query(
+            "INSERT INTO playlist_performances (playlist_id, performance_id, sort_order) \
+             VALUES (?, ?, ?) \
+             ON DUPLICATE KEY UPDATE playlist_id = playlist_id",
+        )
         .bind(playlist_id)
         .bind(performance_id)
+        .bind(base + pos as i32)
+        .execute(&mut *conn)
+        .await
+        .map_err(DbError::from)?;
+    }
+    Ok(())
+}
+
+/// Removes multiple performances from a playlist, ignoring any not present.
+pub async fn remove_performances(
+    executor: impl Executor<'_, Database = MySql>,
+    playlist_id: Uuid,
+    performance_ids: &[Uuid],
+) -> Result<()> {
+    if performance_ids.is_empty() {
+        return Ok(());
+    }
+    let placeholders = performance_ids
+        .iter()
+        .map(|_| "?")
+        .collect::<Vec<_>>()
+        .join(", ");
+    let sql = format!(
+        "DELETE FROM playlist_performances \
+         WHERE playlist_id = ? AND performance_id IN ({placeholders})"
+    );
+    let mut query = sqlx::query(sqlx::AssertSqlSafe(sql.as_str())).bind(playlist_id);
+    for &id in performance_ids {
+        query = query.bind(id);
+    }
+    query
         .execute(executor)
         .await
         .map(|_| ())

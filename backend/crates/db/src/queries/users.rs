@@ -97,8 +97,11 @@ pub async fn create(conn: &mut MySqlConnection, new: &NewUser) -> Result<User> {
 ///
 /// Used on every successful Twitch OAuth login so the username stays in sync
 /// with the user's current Twitch display name.
-pub async fn upsert_by_twitch(conn: &mut MySqlConnection, new: &NewUser) -> Result<User> {
-    sqlx::query(
+///
+/// Returns the user and `true` if a new row was inserted, `false` if an existing
+/// row was updated.
+pub async fn upsert_by_twitch(conn: &mut MySqlConnection, new: &NewUser) -> Result<(User, bool)> {
+    let result = sqlx::query(
         "INSERT INTO users (username, twitch_id, discord_id) VALUES (?, ?, ?) \
          ON DUPLICATE KEY UPDATE username = VALUES(username)",
     )
@@ -108,17 +111,22 @@ pub async fn upsert_by_twitch(conn: &mut MySqlConnection, new: &NewUser) -> Resu
     .execute(&mut *conn)
     .await
     .map_err(DbError::from)?;
-    get_by_twitch_id(&mut *conn, new.twitch_id.ok_or(DbError::NotFound)?)
+    let is_new = result.rows_affected() == 1;
+    let user = get_by_twitch_id(&mut *conn, new.twitch_id.ok_or(DbError::NotFound)?)
         .await?
-        .ok_or(DbError::NotFound)
+        .ok_or(DbError::NotFound)?;
+    Ok((user, is_new))
 }
 
 /// Inserts a user keyed on `discord_id`, updating `username` on conflict.
 ///
 /// Used on every successful Discord OAuth login so the username stays in sync
 /// with the user's current Discord username.
-pub async fn upsert_by_discord(conn: &mut MySqlConnection, new: &NewUser) -> Result<User> {
-    sqlx::query(
+///
+/// Returns the user and `true` if a new row was inserted, `false` if an existing
+/// row was updated.
+pub async fn upsert_by_discord(conn: &mut MySqlConnection, new: &NewUser) -> Result<(User, bool)> {
+    let result = sqlx::query(
         "INSERT INTO users (username, twitch_id, discord_id) VALUES (?, ?, ?) \
          ON DUPLICATE KEY UPDATE username = VALUES(username)",
     )
@@ -128,9 +136,11 @@ pub async fn upsert_by_discord(conn: &mut MySqlConnection, new: &NewUser) -> Res
     .execute(&mut *conn)
     .await
     .map_err(DbError::from)?;
-    get_by_discord_id(&mut *conn, new.discord_id.ok_or(DbError::NotFound)?)
+    let is_new = result.rows_affected() == 1;
+    let user = get_by_discord_id(&mut *conn, new.discord_id.ok_or(DbError::NotFound)?)
         .await?
-        .ok_or(DbError::NotFound)
+        .ok_or(DbError::NotFound)?;
+    Ok((user, is_new))
 }
 
 /// Replaces all mutable fields on a user. Returns `None` if the ID does not exist.
@@ -159,50 +169,5 @@ pub async fn delete(executor: impl Executor<'_, Database = MySql>, id: Uuid) -> 
         .execute(executor)
         .await
         .map(|r| r.rows_affected() > 0)
-        .map_err(DbError::from)
-}
-
-/// Returns the IDs of all songs the user has favorited.
-pub async fn get_favorite_song_ids(
-    executor: impl Executor<'_, Database = MySql>,
-    user_id: Uuid,
-) -> Result<Vec<Uuid>> {
-    sqlx::query_scalar::<_, Uuid>("SELECT song_id FROM user_favorite_songs WHERE user_id = ?")
-        .bind(user_id)
-        .fetch_all(executor)
-        .await
-        .map_err(DbError::from)
-}
-
-/// Adds a song to the user's favorites. No ops if already favorited.
-pub async fn add_favorite_song(
-    executor: impl Executor<'_, Database = MySql>,
-    user_id: Uuid,
-    song_id: Uuid,
-) -> Result<()> {
-    sqlx::query(
-        "INSERT INTO user_favorite_songs (user_id, song_id) VALUES (?, ?) \
-         ON DUPLICATE KEY UPDATE user_id = user_id",
-    )
-    .bind(user_id)
-    .bind(song_id)
-    .execute(executor)
-    .await
-    .map(|_| ())
-    .map_err(DbError::from)
-}
-
-/// Removes a song from the user's favorites.
-pub async fn remove_favorite_song(
-    executor: impl Executor<'_, Database = MySql>,
-    user_id: Uuid,
-    song_id: Uuid,
-) -> Result<()> {
-    sqlx::query("DELETE FROM user_favorite_songs WHERE user_id = ? AND song_id = ?")
-        .bind(user_id)
-        .bind(song_id)
-        .execute(executor)
-        .await
-        .map(|_| ())
         .map_err(DbError::from)
 }

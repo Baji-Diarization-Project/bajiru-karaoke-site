@@ -8,5 +8,6 @@ pub mod common;
 pub mod lyrics;
 pub mod pagination;
 pub mod performances;
+pub mod playlists;
 pub mod songs;
 pub mod tags;

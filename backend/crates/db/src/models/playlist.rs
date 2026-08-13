@@ -9,8 +9,8 @@ pub struct Playlist {
     pub id: Uuid,
     pub title: String,
     pub description: Option<String>,
-    /// Freeform category string (e.g. `"setlist"`, `"favorites"`).
     pub kind: String,
+    pub is_public: bool,
     /// User who created this playlist. `None` for system generated playlists.
     pub created_by: Option<Uuid>,
 }
@@ -21,6 +21,7 @@ pub struct NewPlaylist {
     pub title: String,
     pub description: Option<String>,
     pub kind: String,
+    pub is_public: bool,
     pub created_by: Option<Uuid>,
 }
 
@@ -30,4 +31,5 @@ pub struct UpdatePlaylist {
     pub title: String,
     pub description: Option<String>,
     pub kind: String,
+    pub is_public: bool,
 }

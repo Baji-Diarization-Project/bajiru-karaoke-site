@@ -13,6 +13,7 @@ use db::{MySqlPool, error::DbError, queries};
 
 const SESSION_DAYS: i64 = 30;
 const TOKEN_BYTES: usize = 32;
+const SESSION_MAX_AGE: time::Duration = time::Duration::days(SESSION_DAYS);
 
 /// Creates a new session for `user_id` and returns the raw token to store in the cookie.
 pub async fn issue(pool: &MySqlPool, user_id: Uuid) -> Result<String, DbError> {
@@ -42,13 +43,14 @@ fn hash(token: &str) -> String {
 
 /// Builds the HTTP only `session` cookie carrying the given token.
 ///
-/// The cookie has no `Max-Age`, so it is a session cookie from the browser's
-/// perspective. Expiry is enforced by the `sessions.expires_at` column instead.
+/// `Max-Age` is set to [`SESSION_MAX_AGE`] so the cookie persists across browser
+/// restarts. The server enforces the same lifetime via `sessions.expires_at`.
 pub fn session_cookie(token: String) -> Cookie<'static> {
     let mut c = Cookie::new("session", token);
     c.set_http_only(true);
     c.set_same_site(SameSite::Lax);
     c.set_path("/");
     c.set_secure(true);
+    c.set_max_age(SESSION_MAX_AGE);
     c
 }

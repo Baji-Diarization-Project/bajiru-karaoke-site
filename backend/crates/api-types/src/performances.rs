@@ -36,7 +36,7 @@ pub struct CreatePerformanceRequest {
 
 /// Request body for `PUT /api/performances/{id}`.
 ///
-/// Lyrics are excluded; use `PUT /api/performances/{id}/lyrics` instead.
+/// Lyrics are excluded, use `PUT /api/performances/{id}/lyrics` instead.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdatePerformanceRequest {
     pub title: Option<String>,
@@ -64,7 +64,7 @@ pub struct PerformanceSummary {
 
 /// Full performance metadata returned by detail endpoints.
 ///
-/// Excludes lyrics; fetch those via `GET /api/performances/{id}/lyrics` on demand.
+/// Excludes lyrics, fetch those via `GET /api/performances/{id}/lyrics` on demand.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PerformanceResponse {
     pub id: Uuid,
