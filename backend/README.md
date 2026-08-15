@@ -1,4 +1,4 @@
-# Bajiru Karaoke Site Backend
+# Jako Karaoke Site Backend
 
 Backend API server for the karaoke site. Run with `cargo run`.
 

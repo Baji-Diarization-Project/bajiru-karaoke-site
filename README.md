@@ -1,4 +1,4 @@
-# Bajiru Karaoke Site
+# Jako Karaoke Site
 
 ## Running
 

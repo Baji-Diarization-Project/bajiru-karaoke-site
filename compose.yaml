@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    image: bajiru-karaoke/backend:latest
+    image: jako-karaoke/backend:latest
     restart: unless-stopped
     depends_on:
       db:
@@ -11,7 +11,7 @@ services:
     volumes:
       - ./data/storage:/data/storage
     environment:
-      - DATABASE_URL=mysql://root:${DB_ROOT_PASSWORD}@db:3306/bajiru
+      - DATABASE_URL=mysql://root:${DB_ROOT_PASSWORD}@db:3306/jako
 
       - STORAGE_PATH=/data/storage
       - STORAGE_BASE_URL=${STORAGE_BASE_URL}
@@ -33,7 +33,7 @@ services:
     image: mariadb:13.0.1-ubi10-rc
     restart: unless-stopped
     environment:
-      - MARIADB_DATABASE=bajiru
+      - MARIADB_DATABASE=jako
       - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
     volumes:
       - data_db:/var/lib/mysql
