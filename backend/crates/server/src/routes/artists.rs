@@ -98,14 +98,18 @@ pub(crate) async fn get_artist(
     responses(
         (status = 201, description = "Created artist", body = ArtistResponse),
         (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Forbidden", body = ErrorResponse),
     ),
     tag = "artists"
 )]
 pub(crate) async fn create_artist(
     State(state): State<AppState>,
-    _auth: AuthUser,
+    auth: AuthUser,
     Json(req): Json<CreateArtistRequest>,
 ) -> Result<(StatusCode, Json<ArtistResponse>), ApiError> {
+    if !auth.capabilities.contains(capabilities::ARTISTS_MANAGE_ANY) {
+        return Err(ApiError::Forbidden);
+    }
     let mut conn = state.pool.acquire().await.map_err(DbError::Sqlx)?;
     let artist = queries::artists::create(
         &mut conn,
