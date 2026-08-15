@@ -20,12 +20,29 @@ pub async fn get_by_id(
         .map_err(DbError::from)
 }
 
-/// Returns all artists ordered by name.
-pub async fn list(executor: impl Executor<'_, Database = MySql>) -> Result<Vec<Artist>> {
-    sqlx::query_as::<_, Artist>("SELECT id, name, description FROM artists ORDER BY name")
-        .fetch_all(executor)
+/// Returns the total number of artists.
+pub async fn count(executor: impl Executor<'_, Database = MySql>) -> Result<u64> {
+    sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM artists")
+        .fetch_one(executor)
         .await
+        .map(|n| n as u64)
         .map_err(DbError::from)
+}
+
+/// Returns a page of artists ordered by name.
+pub async fn list(
+    executor: impl Executor<'_, Database = MySql>,
+    limit: u32,
+    offset: u32,
+) -> Result<Vec<Artist>> {
+    sqlx::query_as::<_, Artist>(
+        "SELECT id, name, description FROM artists ORDER BY name LIMIT ? OFFSET ?",
+    )
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(executor)
+    .await
+    .map_err(DbError::from)
 }
 
 /// Inserts a new artist and returns the created row.
