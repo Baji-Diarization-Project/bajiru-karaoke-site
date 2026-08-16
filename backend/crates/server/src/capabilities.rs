@@ -5,6 +5,8 @@
 
 use api_types::playlists::PlaylistKind;
 
+pub const ARTISTS_MANAGE_ANY: &str = "artists:manage_any";
+
 pub const PLAYLISTS_VIEW_PRIVATE: &str = "playlists:view_private";
 pub const PLAYLISTS_CREATE_OFFICIAL: &str = "playlists:create_official";
 pub const PLAYLISTS_CREATE_FAVORITES: &str = "playlists:create_favorites";

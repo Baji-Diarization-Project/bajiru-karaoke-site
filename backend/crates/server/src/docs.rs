@@ -7,15 +7,16 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     auth::AuthApi,
     routes::{
-        performances::PerformancesApi, playlists::PlaylistsApi, songs::SongsApi, tags::TagsApi,
-        users::UsersApi,
+        artists::ArtistsApi, performances::PerformancesApi, playlists::PlaylistsApi,
+        songs::SongsApi, tags::TagsApi, users::UsersApi,
     },
     state::AppState,
 };
 
 /// Builds the `/docs` router, serving the merged OpenAPI spec and Swagger UI.
 pub fn router() -> Router<AppState> {
-    let mut spec = SongsApi::openapi();
+    let mut spec = ArtistsApi::openapi();
+    spec.merge(SongsApi::openapi());
     spec.merge(PerformancesApi::openapi());
     spec.merge(PlaylistsApi::openapi());
     spec.merge(TagsApi::openapi());

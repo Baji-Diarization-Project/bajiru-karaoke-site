@@ -3,6 +3,7 @@
 //! All types derive [`utoipa::ToSchema`] so they can be referenced directly in
 //! OpenAPI path annotations without redeclaration.
 
+pub mod artists;
 pub mod auth;
 pub mod common;
 pub mod lyrics;
