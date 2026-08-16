@@ -4,7 +4,14 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": "26"
+  },
   "scripts": {
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "prepare": "prek install"
+  },
+  "devDependencies": {
+    "@j178/prek": "^0.4.13"
   }
 }
