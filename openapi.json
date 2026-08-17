@@ -1,0 +1,2959 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "server",
+    "description": "",
+    "license": {
+      "name": "AGPL-3.0-only",
+      "identifier": "AGPL-3.0-only"
+    },
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/api/artists": {
+      "get": {
+        "tags": [
+          "artists"
+        ],
+        "operationId": "list_artists",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "Page number, 1-indexed. Defaults to 1.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "path",
+            "description": "Items per page. Defaults to 20. The server enforces a maximum.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of artists ordered by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponse_ArtistResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "artists"
+        ],
+        "operationId": "create_artist",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created artist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artists/{id}": {
+      "get": {
+        "tags": [
+          "artists"
+        ],
+        "operationId": "get_artist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Artist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artist detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "artists"
+        ],
+        "operationId": "update_artist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Artist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated artist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "artists"
+        ],
+        "operationId": "delete_artist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Artist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances": {
+      "get": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "list_performances",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "Page number, 1-indexed. Defaults to 1.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "path",
+            "description": "Items per page. Defaults to 20. The server enforces a maximum.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paged list of performances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponse_PerformanceSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "create_performance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePerformanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created performance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}": {
+      "get": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "get_performance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "update_performance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePerformanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated performance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "delete_performance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}/audio": {
+      "post": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "upload_audio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FileUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Audio uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Performance not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}/audio/{audio_id}": {
+      "delete": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "delete_audio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "audio_id",
+            "in": "path",
+            "description": "Audio record ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}/lyrics": {
+      "get": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "get_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lyrics for this performance. Returns performance-specific lyrics if set, otherwise falls back to the linked song's lyrics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LyricsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "put_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLyricsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Lyrics saved"
+          },
+          "404": {
+            "description": "Performance not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "delete_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Performance lyrics override removed"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}/video": {
+      "post": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "upload_video",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FileUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Video uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Performance not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performances/{id}/video/{video_id}": {
+      "delete": {
+        "tags": [
+          "performances"
+        ],
+        "operationId": "delete_video",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Performance ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "video_id",
+            "in": "path",
+            "description": "Video record ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/playlists": {
+      "get": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "list_playlists",
+        "responses": {
+          "200": {
+            "description": "Returns public playlists, or all playlists for users with sufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlaylistResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "create_playlist",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlaylistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created playlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaylistResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/playlists/{id}": {
+      "get": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "get_playlist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Playlist detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaylistResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "update_playlist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlaylistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated playlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaylistResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "delete_playlist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/playlists/{id}/performances": {
+      "get": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "list_playlist_performances",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ordered performances in this playlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PerformanceSummary"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "add_playlist_performances",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPerformancesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Performances added"
+          },
+          "404": {
+            "description": "Playlist not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "playlists"
+        ],
+        "operationId": "remove_playlist_performances",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePerformancesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Performances removed"
+          },
+          "404": {
+            "description": "Playlist not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songs": {
+      "get": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "list_songs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "Page number, 1-indexed. Defaults to 1.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "path",
+            "description": "Items per page. Defaults to 20. The server enforces a maximum.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paged list of songs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponse_SongSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "create_song",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSongRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created song",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SongResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songs/{id}": {
+      "get": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "get_song",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Song detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SongResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "update_song",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSongRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated song",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SongResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "delete_song",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songs/{id}/lyrics": {
+      "get": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "get_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Song lyrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LyricsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "put_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLyricsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Lyrics saved"
+          },
+          "404": {
+            "description": "Song not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "songs"
+        ],
+        "operationId": "delete_lyrics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Song ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Lyrics removed"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "list_tags",
+        "responses": {
+          "200": {
+            "description": "All tags ordered by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "create_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Tag returned, created if new",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "get_tag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "delete_tag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}/favorites": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "get_user_favorites",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ordered performances in this user's favorites playlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PerformanceSummary"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}/playlists": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "list_user_playlists",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Playlists for this user. Returns all playlists when viewing your own profile or with sufficient permissions, otherwise public only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlaylistResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/discord": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "initiate",
+        "responses": {
+          "302": {
+            "description": "Redirect to Discord OAuth, sets CSRF cookie"
+          }
+        }
+      }
+    },
+    "/auth/discord/callback": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "callback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "description": "Authorization code from Discord",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "CSRF state token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend, session cookie set"
+          },
+          "400": {
+            "description": "Missing or invalid OAuth state"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Logged in, session cookie set"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "Logged out, session cookie cleared"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Registered, session cookie set"
+          },
+          "400": {
+            "description": "Invalid username or password"
+          },
+          "409": {
+            "description": "Username already taken"
+          }
+        }
+      }
+    },
+    "/auth/twitch": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "initiate",
+        "responses": {
+          "302": {
+            "description": "Redirect to Twitch OAuth, sets CSRF cookie"
+          }
+        }
+      }
+    },
+    "/auth/twitch/callback": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "callback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "description": "Authorization code from Twitch",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "CSRF state token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend, session cookie set"
+          },
+          "400": {
+            "description": "Missing or invalid OAuth state"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddPerformancesRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/playlists/{id}/performances`.",
+        "required": [
+          "performance_ids"
+        ],
+        "properties": {
+          "performance_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "ArtistInfo": {
+        "type": "object",
+        "description": "A minimal artist record embedded in song and performance responses.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ArtistResponse": {
+        "type": "object",
+        "description": "An artist record returned by artist endpoints.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateArtistRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/artists`.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatePerformanceRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/performances`.",
+        "required": [
+          "performance_date",
+          "song_ids",
+          "singer_ids",
+          "tags"
+        ],
+        "properties": {
+          "duration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Duration in seconds.",
+            "minimum": 0
+          },
+          "lyrics": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional inline lyrics content. Creates a lyrics row in a single round trip."
+          },
+          "performance_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "singer_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "song_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PerformanceTagAssignment"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreatePlaylistRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/playlists`.",
+        "required": [
+          "title",
+          "kind",
+          "is_public"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_public": {
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaylistKind"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateSongRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/songs`.",
+        "required": [
+          "title",
+          "artist_ids",
+          "tags",
+          "image_ids"
+        ],
+        "properties": {
+          "artist_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "image_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "lyrics": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional inline lyrics content. Creates a lyrics row in a single round trip."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SongTagAssignment"
+            }
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateTagRequest": {
+        "type": "object",
+        "description": "Request body for `POST /api/tags`.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Body returned for all error responses.",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "FileUpload": {
+        "type": "object",
+        "description": "Placeholder schema for multipart file upload bodies.",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "binary",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "ImageInfo": {
+        "type": "object",
+        "description": "An image record embedded in song responses.",
+        "required": [
+          "id",
+          "public_url"
+        ],
+        "properties": {
+          "credits": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "public_url": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "description": "Request body for `POST /auth/login`.",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "LyricsResponse": {
+        "type": "object",
+        "description": "Response body for lyrics GET endpoints.",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "description": "Response body for `GET /auth/me`.",
+        "required": [
+          "id",
+          "username",
+          "capabilities"
+        ],
+        "properties": {
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Capability titles embedded in the session JWT."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "MediaInfo": {
+        "type": "object",
+        "description": "A media file (audio or video) embedded in performance responses.",
+        "required": [
+          "id",
+          "public_url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "public_url": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedResponse_ArtistResponse": {
+        "type": "object",
+        "description": "Generic envelope returned by all paginated list endpoints.",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "per_page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "An artist record returned by artist endpoints.",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The page that was returned, 1-indexed.",
+            "minimum": 0
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Items per page as applied by the server (may be less than requested if capped).",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total number of matching items across all pages.",
+            "minimum": 0
+          }
+        }
+      },
+      "PagedResponse_PerformanceSummary": {
+        "type": "object",
+        "description": "Generic envelope returned by all paginated list endpoints.",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "per_page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Lean performance representation returned by list endpoints.\n\nContains enough to render a performance card without a follow up request.",
+              "required": [
+                "id",
+                "play_count",
+                "performance_date",
+                "singers"
+              ],
+              "properties": {
+                "duration": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32",
+                  "description": "Duration in seconds.",
+                  "minimum": 0
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "performance_date": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "play_count": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "singers": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ArtistInfo"
+                  }
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The page that was returned, 1-indexed.",
+            "minimum": 0
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Items per page as applied by the server (may be less than requested if capped).",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total number of matching items across all pages.",
+            "minimum": 0
+          }
+        }
+      },
+      "PagedResponse_SongSummary": {
+        "type": "object",
+        "description": "Generic envelope returned by all paginated list endpoints.",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "per_page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Lean song representation returned by list endpoints.\n\nContains enough to render a song card without a follow up request.",
+              "required": [
+                "id",
+                "title",
+                "date_added",
+                "artists"
+              ],
+              "properties": {
+                "artists": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ArtistInfo"
+                  }
+                },
+                "date_added": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The page that was returned, 1-indexed.",
+            "minimum": 0
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Items per page as applied by the server (may be less than requested if capped).",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total number of matching items across all pages.",
+            "minimum": 0
+          }
+        }
+      },
+      "PerformanceResponse": {
+        "type": "object",
+        "description": "Full performance metadata returned by detail endpoints.\n\nExcludes lyrics, fetch those via `GET /api/performances/{id}/lyrics` on demand.",
+        "required": [
+          "id",
+          "play_count",
+          "performance_date",
+          "songs",
+          "singers",
+          "tags",
+          "audio",
+          "video"
+        ],
+        "properties": {
+          "audio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaInfo"
+            }
+          },
+          "duration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Duration in seconds.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performance_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "play_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "singers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistInfo"
+            }
+          },
+          "songs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SongSummary"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagInfo"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "video": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaInfo"
+            }
+          }
+        }
+      },
+      "PerformanceSummary": {
+        "type": "object",
+        "description": "Lean performance representation returned by list endpoints.\n\nContains enough to render a performance card without a follow up request.",
+        "required": [
+          "id",
+          "play_count",
+          "performance_date",
+          "singers"
+        ],
+        "properties": {
+          "duration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Duration in seconds.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performance_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "play_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "singers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistInfo"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "PerformanceTagAssignment": {
+        "type": "object",
+        "description": "A tag paired with its kind for application to a performance.",
+        "required": [
+          "tag_id",
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PerformanceTagKind"
+          },
+          "tag_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PerformanceTagKind": {
+        "type": "string",
+        "description": "Valid kind values when applying a tag to a performance.",
+        "enum": [
+          "instrument",
+          "modifier",
+          "misc"
+        ]
+      },
+      "PlaylistKind": {
+        "type": "string",
+        "description": "Valid kind values for a playlist.\n\n`Favorites` playlists are created automatically on user registration and\ncannot be created or deleted through normal playlist endpoints.",
+        "enum": [
+          "user",
+          "official",
+          "favorites"
+        ]
+      },
+      "PlaylistResponse": {
+        "type": "object",
+        "description": "Full playlist metadata returned by detail and list endpoints.",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "is_public"
+        ],
+        "properties": {
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "is_public": {
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaylistKind"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "description": "Request body for `POST /auth/register`.",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "Minimum 8 characters."
+          },
+          "username": {
+            "type": "string",
+            "description": "Alphanumeric with `_` and `.` allowed, max 64 chars, case insensitive unique."
+          }
+        }
+      },
+      "RemovePerformancesRequest": {
+        "type": "object",
+        "description": "Request body for `DELETE /api/playlists/{id}/performances`.",
+        "required": [
+          "performance_ids"
+        ],
+        "properties": {
+          "performance_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "SongResponse": {
+        "type": "object",
+        "description": "Full song metadata returned by detail endpoints.\n\nExcludes lyrics, fetch those via `GET /api/songs/{id}/lyrics` on demand.",
+        "required": [
+          "id",
+          "title",
+          "date_added",
+          "artists",
+          "tags",
+          "images"
+        ],
+        "properties": {
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistInfo"
+            }
+          },
+          "date_added": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageInfo"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagInfo"
+            }
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "SongSummary": {
+        "type": "object",
+        "description": "Lean song representation returned by list endpoints.\n\nContains enough to render a song card without a follow up request.",
+        "required": [
+          "id",
+          "title",
+          "date_added",
+          "artists"
+        ],
+        "properties": {
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistInfo"
+            }
+          },
+          "date_added": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "SongTagAssignment": {
+        "type": "object",
+        "description": "A tag paired with its kind for application to a song.",
+        "required": [
+          "tag_id",
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/SongTagKind"
+          },
+          "tag_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SongTagKind": {
+        "type": "string",
+        "description": "Valid kind values when applying a tag to a song.",
+        "enum": [
+          "genre",
+          "source",
+          "language",
+          "misc"
+        ]
+      },
+      "TagInfo": {
+        "type": "object",
+        "description": "A tag embedded in song responses.",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "description": "Freeform category string (e.g. `\"genre\"`, `\"mood\"`)."
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TagResponse": {
+        "type": "object",
+        "description": "A tag record returned by tag endpoints.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateArtistRequest": {
+        "type": "object",
+        "description": "Request body for `PUT /api/artists/{id}`.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateLyricsRequest": {
+        "type": "object",
+        "description": "Request body for lyrics PUT endpoints.",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePerformanceRequest": {
+        "type": "object",
+        "description": "Request body for `PUT /api/performances/{id}`.\n\nLyrics are excluded, use `PUT /api/performances/{id}/lyrics` instead.",
+        "required": [
+          "performance_date",
+          "song_ids",
+          "singer_ids",
+          "tags"
+        ],
+        "properties": {
+          "duration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Duration in seconds.",
+            "minimum": 0
+          },
+          "performance_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "singer_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "song_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PerformanceTagAssignment"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdatePlaylistRequest": {
+        "type": "object",
+        "description": "Request body for `PUT /api/playlists/{id}`.",
+        "required": [
+          "title",
+          "kind",
+          "is_public"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_public": {
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaylistKind"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateSongRequest": {
+        "type": "object",
+        "description": "Request body for `PUT /api/songs/{id}`.\n\nLyrics are excluded, use `PUT /api/songs/{id}/lyrics` instead.",
+        "required": [
+          "title",
+          "artist_ids",
+          "tags",
+          "image_ids"
+        ],
+        "properties": {
+          "artist_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "image_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SongTagAssignment"
+            }
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
