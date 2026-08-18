@@ -19,9 +19,9 @@
         "parameters": [
           {
             "name": "page",
-            "in": "path",
+            "in": "query",
             "description": "Page number, 1-indexed. Defaults to 1.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -30,9 +30,9 @@
           },
           {
             "name": "per_page",
-            "in": "path",
+            "in": "query",
             "description": "Items per page. Defaults to 20. The server enforces a maximum.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -276,9 +276,9 @@
         "parameters": [
           {
             "name": "page",
-            "in": "path",
+            "in": "query",
             "description": "Page number, 1-indexed. Defaults to 1.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -287,9 +287,9 @@
           },
           {
             "name": "per_page",
-            "in": "path",
+            "in": "query",
             "description": "Items per page. Defaults to 20. The server enforces a maximum.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -576,7 +576,7 @@
         "tags": [
           "performances"
         ],
-        "operationId": "get_lyrics",
+        "operationId": "get_performance_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -616,7 +616,7 @@
         "tags": [
           "performances"
         ],
-        "operationId": "put_lyrics",
+        "operationId": "put_performance_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -659,7 +659,7 @@
         "tags": [
           "performances"
         ],
-        "operationId": "delete_lyrics",
+        "operationId": "delete_performance_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -1182,9 +1182,9 @@
         "parameters": [
           {
             "name": "page",
-            "in": "path",
+            "in": "query",
             "description": "Page number, 1-indexed. Defaults to 1.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -1193,9 +1193,9 @@
           },
           {
             "name": "per_page",
-            "in": "path",
+            "in": "query",
             "description": "Items per page. Defaults to 20. The server enforces a maximum.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -1375,7 +1375,7 @@
         "tags": [
           "songs"
         ],
-        "operationId": "get_lyrics",
+        "operationId": "get_song_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -1415,7 +1415,7 @@
         "tags": [
           "songs"
         ],
-        "operationId": "put_lyrics",
+        "operationId": "put_song_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -1458,7 +1458,7 @@
         "tags": [
           "songs"
         ],
-        "operationId": "delete_lyrics",
+        "operationId": "delete_song_lyrics",
         "parameters": [
           {
             "name": "id",
@@ -1719,7 +1719,7 @@
         "tags": [
           "auth"
         ],
-        "operationId": "initiate",
+        "operationId": "discord_initiate",
         "responses": {
           "302": {
             "description": "Redirect to Discord OAuth, sets CSRF cookie"
@@ -1732,7 +1732,7 @@
         "tags": [
           "auth"
         ],
-        "operationId": "callback",
+        "operationId": "discord_callback",
         "parameters": [
           {
             "name": "code",
@@ -1866,7 +1866,7 @@
         "tags": [
           "auth"
         ],
-        "operationId": "initiate",
+        "operationId": "twitch_initiate",
         "responses": {
           "302": {
             "description": "Redirect to Twitch OAuth, sets CSRF cookie"
@@ -1879,7 +1879,7 @@
         "tags": [
           "auth"
         ],
-        "operationId": "callback",
+        "operationId": "twitch_callback",
         "parameters": [
           {
             "name": "code",

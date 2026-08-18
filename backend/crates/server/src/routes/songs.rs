@@ -26,9 +26,9 @@ use api_types::{
         create_song,
         update_song,
         delete_song,
-        lyrics::get_lyrics,
-        lyrics::put_lyrics,
-        lyrics::delete_lyrics,
+        lyrics::get_song_lyrics,
+        lyrics::put_song_lyrics,
+        lyrics::delete_song_lyrics,
     ),
     components(schemas(
         SongSummary,
@@ -62,9 +62,9 @@ pub fn router() -> Router<AppState> {
         .route("/{id}", get(get_song).put(update_song).delete(delete_song))
         .route(
             "/{id}/lyrics",
-            get(lyrics::get_lyrics)
-                .put(lyrics::put_lyrics)
-                .delete(lyrics::delete_lyrics),
+            get(lyrics::get_song_lyrics)
+                .put(lyrics::put_song_lyrics)
+                .delete(lyrics::delete_song_lyrics),
         )
 }
 

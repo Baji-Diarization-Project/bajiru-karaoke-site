@@ -40,6 +40,7 @@ struct TwitchUser {
 
 #[utoipa::path(
     get,
+    operation_id = "twitch_initiate",
     path = "/auth/twitch",
     responses(
         (status = 302, description = "Redirect to Twitch OAuth, sets CSRF cookie"),
@@ -66,6 +67,7 @@ pub(crate) async fn initiate(
 
 #[utoipa::path(
     get,
+    operation_id = "twitch_callback",
     path = "/auth/twitch/callback",
     params(
         ("code" = String, Query, description = "Authorization code from Twitch"),

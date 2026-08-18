@@ -35,6 +35,7 @@ struct DiscordUser {
 
 #[utoipa::path(
     get,
+    operation_id = "discord_initiate",
     path = "/auth/discord",
     responses(
         (status = 302, description = "Redirect to Discord OAuth, sets CSRF cookie"),
@@ -61,6 +62,7 @@ pub(crate) async fn initiate(
 
 #[utoipa::path(
     get,
+    operation_id = "discord_callback",
     path = "/auth/discord/callback",
     params(
         ("code" = String, Query, description = "Authorization code from Discord"),
