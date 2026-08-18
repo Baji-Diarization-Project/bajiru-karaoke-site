@@ -33,6 +33,14 @@ types = ["rust"]
 pass_filenames = false
 
 [[repos.hooks]]
+id = "spec-export"
+name = "export OpenAPI spec"
+entry = "bash -c 'cargo run --manifest-path backend/Cargo.toml --bin export-spec > openapi.json'"
+language = "system"
+types = ["rust"]
+pass_filenames = false
+
+[[repos.hooks]]
 id = "cargo-clippy"
 name = "cargo clippy"
 entry = "bash -c 'cd backend && cargo clippy --workspace --all-targets -- -D warnings'"

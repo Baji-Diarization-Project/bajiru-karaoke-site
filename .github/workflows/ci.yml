@@ -53,3 +53,6 @@ jobs:
       - name: Prek
         run: |
           pnpm exec prek run --hook-stage pre-push --all-files --show-diff-on-failure
+
+      - name: Verify OpenAPI
+        run: git diff --exit-code openapi.json
