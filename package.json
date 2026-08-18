@@ -11,7 +11,7 @@
     "lint": "pnpm -r lint",
     "prepare": "prek install",
     "spec:export": "cargo run --manifest-path backend/Cargo.toml --bin export-spec > openapi.json",
-    "api:gen": "pnpm spec:export && pnpm --filter frontend api:gen"
+    "api:gen": "pnpm spec:export && pnpm --filter jako-karaoke-frontend api:gen"
   },
   "devDependencies": {
     "@j178/prek": "^0.4.13"

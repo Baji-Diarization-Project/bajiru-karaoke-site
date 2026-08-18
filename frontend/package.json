@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm api:gen && tsc -b && vite build",
-    "lint": "oxlint . && oxfmt .",
+    "lint": "oxlint . && oxfmt . && tsc -b --noEmit",
     "lint:fix": "oxlint . --fix --fix-suggestions",
     "preview": "vite preview",
     "api:gen": "openapi-typescript ../openapi.json -o src/api/generated.ts"
