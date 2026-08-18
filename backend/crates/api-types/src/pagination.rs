@@ -17,6 +17,7 @@ pub struct PagedResponse<T: ToSchema> {
 
 /// Query parameters accepted by paginated list endpoints.
 #[derive(Debug, Clone, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct PaginationParams {
     /// Page number, 1-indexed. Defaults to 1.
     #[serde(default = "defaults::page")]
