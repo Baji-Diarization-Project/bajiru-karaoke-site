@@ -35,9 +35,9 @@ use api_types::{
         delete_audio,
         upload_video,
         delete_video,
-        lyrics::get_lyrics,
-        lyrics::put_lyrics,
-        lyrics::delete_lyrics,
+        lyrics::get_performance_lyrics,
+        lyrics::put_performance_lyrics,
+        lyrics::delete_performance_lyrics,
     ),
     components(schemas(
         PerformanceSummary,
@@ -98,9 +98,9 @@ pub fn router() -> Router<AppState> {
         .route("/{id}/video/{video_id}", delete(delete_video))
         .route(
             "/{id}/lyrics",
-            get(lyrics::get_lyrics)
-                .put(lyrics::put_lyrics)
-                .delete(lyrics::delete_lyrics),
+            get(lyrics::get_performance_lyrics)
+                .put(lyrics::put_performance_lyrics)
+                .delete(lyrics::delete_performance_lyrics),
         )
 }
 

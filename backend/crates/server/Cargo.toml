@@ -9,6 +9,10 @@ license = { workspace = true }
 name = "server"
 path = "src/main.rs"
 
+[[bin]]
+name = "export-spec"
+path = "src/bin/export_spec.rs"
+
 [dependencies]
 api-types = { workspace = true }
 argon2 = { workspace = true }

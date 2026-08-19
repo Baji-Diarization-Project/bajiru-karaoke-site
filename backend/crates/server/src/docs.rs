@@ -13,8 +13,8 @@ use crate::{
     state::AppState,
 };
 
-/// Builds the `/docs` router, serving the merged OpenAPI spec and Swagger UI.
-pub fn router() -> Router<AppState> {
+/// Assembles the merged OpenAPI spec from all API groups.
+pub fn openapi_spec() -> utoipa::openapi::OpenApi {
     let mut spec = ArtistsApi::openapi();
     spec.merge(SongsApi::openapi());
     spec.merge(PerformancesApi::openapi());
@@ -22,6 +22,10 @@ pub fn router() -> Router<AppState> {
     spec.merge(TagsApi::openapi());
     spec.merge(UsersApi::openapi());
     spec.merge(AuthApi::openapi());
+    spec
+}
 
-    Router::new().merge(SwaggerUi::new("/docs").url("/docs/openapi.json", spec))
+/// Builds the `/docs` router, serving the merged OpenAPI spec and Swagger UI.
+pub fn router() -> Router<AppState> {
+    Router::new().merge(SwaggerUi::new("/docs").url("/docs/openapi.json", openapi_spec()))
 }

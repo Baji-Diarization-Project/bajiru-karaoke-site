@@ -5,28 +5,36 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint . && oxfmt .",
-    "preview": "vite preview"
+    "build": "pnpm api:gen && tsc -b && vite build",
+    "lint": "pnpm api:gen && oxlint . && oxfmt . && tsc -b --noEmit",
+    "lint:fix": "oxlint . --fix --fix-suggestions",
+    "preview": "vite preview",
+    "api:gen": "openapi-typescript ../openapi.json -o src/api/generated.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.101.4",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "react-router": "^8.3.0",
+    "tailwindcss": "^4.3.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "^6.0.5",
     "babel-plugin-react-compiler": "^1.0.0",
+    "openapi-typescript": "^7.13.0",
     "oxfmt": "^0.63.0",
     "oxlint": "^1.78.0",
     "oxlint-tsgolint": "^7.0.2001",
-    "typescript": "~7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "^8.2.1"
   }
 }

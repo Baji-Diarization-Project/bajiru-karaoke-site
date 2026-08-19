@@ -1,21 +1,7 @@
-mod auth;
-mod capabilities;
-mod config;
-mod convert;
-mod docs;
-mod error;
-mod media;
-mod pagination;
-mod routes;
-mod state;
-mod storage;
-mod tasks;
-
 use std::sync::Arc;
 
 use oauth2::{AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl, basic::BasicClient};
-use state::AppState;
-use storage::FileStore;
+use server::{config, routes, state::AppState, storage::FileStore, tasks};
 
 #[tokio::main]
 async fn main() {
@@ -75,7 +61,7 @@ async fn main() {
         discord_oauth,
         http_client,
     };
-    tokio::spawn(tasks::session_cleanup::run(state.pool.clone()));
+    tasks::spawn_background_tasks(state.pool.clone());
 
     let app = routes::build_router(state);
     let addr = format!("0.0.0.0:{}", config.port);

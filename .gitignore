@@ -51,3 +51,6 @@ vite.config.ts.timestamp-*
 
 # Misc
 /data/
+
+# Generated
+frontend/src/api/generated.ts

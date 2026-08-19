@@ -23,6 +23,7 @@ use crate::{error::ApiError, state::AppState};
 
 #[utoipa::path(
     get,
+
     path = "/api/songs/{id}/lyrics",
     params(("id" = Uuid, Path, description = "Song ID")),
     responses(
@@ -31,7 +32,7 @@ use crate::{error::ApiError, state::AppState};
     ),
     tag = "songs"
 )]
-pub(crate) async fn get_lyrics(
+pub(crate) async fn get_song_lyrics(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<LyricsResponse>, ApiError> {
@@ -51,6 +52,7 @@ pub(crate) async fn get_lyrics(
 
 #[utoipa::path(
     put,
+
     path = "/api/songs/{id}/lyrics",
     params(("id" = Uuid, Path, description = "Song ID")),
     request_body = UpdateLyricsRequest,
@@ -60,7 +62,7 @@ pub(crate) async fn get_lyrics(
     ),
     tag = "songs"
 )]
-pub(crate) async fn put_lyrics(
+pub(crate) async fn put_song_lyrics(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateLyricsRequest>,
@@ -92,6 +94,7 @@ pub(crate) async fn put_lyrics(
 
 #[utoipa::path(
     delete,
+
     path = "/api/songs/{id}/lyrics",
     params(("id" = Uuid, Path, description = "Song ID")),
     responses(
@@ -100,7 +103,7 @@ pub(crate) async fn put_lyrics(
     ),
     tag = "songs"
 )]
-pub(crate) async fn delete_lyrics(
+pub(crate) async fn delete_song_lyrics(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
